@@ -19,7 +19,7 @@ ProShop is a legacy MERN ecommerce application: an Express/Mongoose API serves p
 ## Architecture
 
 - Root scripts and backend dependencies live in `package.json`.
-- Frontend dependencies and CRA proxy live in `frontend/package.json`; proxy points to `http://127.0.0.1:5000`.
+- Frontend dependencies and CRA proxy live in `frontend/package.json`; this fork uses proxy `http://127.0.0.1:5001`.
 - Backend entry point: `backend/server.js`.
 - MongoDB connection: `backend/config/db.js`.
 - API routes:
@@ -59,10 +59,16 @@ npm install --prefix frontend
 Development:
 
 ```bash
-npm run dev      # backend on :5000 and frontend on :3000
+npm run dev      # full dev command; use NODE_OPTIONS below on Node 22
 npm run server   # backend only via nodemon
 npm run client   # frontend only via CRA
 npm start        # production-style backend start
+```
+
+On Node 22, start the frontend with the legacy OpenSSL provider because `react-scripts@3.4.3` uses old Webpack hashing:
+
+```bash
+NODE_OPTIONS=--openssl-legacy-provider npm run client
 ```
 
 Database seed:
@@ -87,7 +93,7 @@ Required root `.env` variables:
 
 ```env
 NODE_ENV=development
-PORT=5000
+PORT=5001
 MONGO_URI=mongodb://localhost:27017/proshop
 JWT_SECRET=replace_with_dev_secret
 PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
@@ -108,6 +114,7 @@ PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
 - Async frontend behavior belongs in Redux thunk action creators under `frontend/src/actions`.
 - Reducers should remain pure state transitions based on constants from `frontend/src/constants`.
 - Frontend API calls use relative `/api/...` URLs so CRA proxy and production Express hosting both work.
+- Keep `PORT` and the CRA proxy in `frontend/package.json` aligned; this fork uses `5001` because port `5000` may be occupied on macOS.
 - `localStorage` stores `cartItems`, `userInfo`, `shippingAddress`, and `paymentMethod`.
 - Prefer focused fixes that keep API response shapes, Redux state shape, route URLs, and env var names stable.
 - Use focused commits with Conventional Commit-style messages; PR titles should match the main workstream.
