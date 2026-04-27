@@ -6,8 +6,8 @@ ProShop is a legacy MERN ecommerce application: an Express/Mongoose API serves p
 
 ## Tech Stack
 
-- Runtime/package manager: Node.js with npm; backend requires Node `v14.6+` for native ES modules.
-- Backend: Express `^4.17.1`, Mongoose `^5.10.6`, dotenv `^8.2.0`, express-async-handler `^1.1.4`.
+- Runtime/package manager: Node.js with npm; backend now requires Node `v16.20.1+` because Mongoose 8 uses the MongoDB Node driver 6 line.
+- Backend: Express `^4.17.1`, Mongoose `^8.22.1`, dotenv `^8.2.0`, express-async-handler `^1.1.4`.
 - Auth/security: jsonwebtoken `^8.5.1`, bcryptjs `^2.4.3`.
 - Backend utilities: multer `^1.4.2`, morgan `^1.10.0`, colors `^1.4.0`.
 - Dev tooling: concurrently `^5.3.0`, nodemon `^2.0.4`.

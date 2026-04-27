@@ -4,15 +4,15 @@ Legacy MERN ecommerce application for a small online store: shoppers can browse 
 
 ## Deprecated Upstream
 
-The upstream project is marked deprecated by the author. That matters here because the stack is intentionally old: backend ES modules, Mongoose 5, React 16, Redux, and `react-scripts@3.4.3`. Expect deprecation warnings and a few local setup quirks on modern tooling.
+The upstream project is marked deprecated by the author. That matters here because the stack is intentionally old: backend ES modules, React 16, Redux, and `react-scripts@3.4.3`. This fork has upgraded the backend ODM to Mongoose 8, but the frontend remains legacy and still has local setup quirks on modern tooling.
 
 ## Tech Stack
 
 ### Backend
 
-- Node.js `v14.6+` required for native ES modules
+- Node.js `v16.20.1+` required by Mongoose 8; Node `v24.15.0` is the verified local runtime
 - Express `^4.17.1`
-- Mongoose `^5.10.6`
+- Mongoose `^8.22.1`
 - dotenv `^8.2.0`
 - express-async-handler `^1.1.4`
 - jsonwebtoken `^8.5.1`
@@ -61,7 +61,8 @@ The upstream project is marked deprecated by the author. That matters here becau
 ## Prerequisites
 
 - Node.js and npm
-  - Node `v14.6+` is required
+  - Node `v16.20.1+` is required by Mongoose 8
+  - Node `v24.15.0` with npm `11.12.1` is the verified local setup
   - modern Node versions may need the OpenSSL workaround documented below for the frontend
 - MongoDB
   - quick start option: Docker container `mongo:7`
@@ -111,7 +112,7 @@ npm install
 Notes:
 
 - On npm `11`, both lockfiles are rewritten to `lockfileVersion: 3`.
-- Old packages emit deprecation and audit warnings. They were documented, not upgraded as part of onboarding.
+- Old frontend and utility packages still emit deprecation and audit warnings. Mongoose was upgraded separately; do not run broad `npm audit fix` as part of onboarding.
 
 ## Start MongoDB
 
@@ -293,7 +294,7 @@ If seeding or backend startup fails:
 
 ### Dependency warnings during install
 
-This repository uses old packages. `npm install` may report deprecated packages and many audit findings. That is expected for this homework fork and should be treated as a documented finding, not an automatic upgrade task.
+This repository still uses old frontend and utility packages. `npm install` may report deprecated packages and audit findings. Mongoose is already upgraded to 8.x in this fork, but React, `react-scripts`, Axios, and `multer` remain legacy and should be upgraded only in isolated, verified changes.
 
 ### PayPal button does not load
 
