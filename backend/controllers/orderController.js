@@ -1,40 +1,93 @@
+import mongoose from 'mongoose'
 import asyncHandler from 'express-async-handler'
 import Order from '../models/orderModel.js'
+import Product from '../models/productModel.js'
+
+const addDecimals = (num) => Number((Math.round(num * 100) / 100).toFixed(2))
+
+const calculateOrderPrices = (orderItems) => {
+  const itemsPrice = addDecimals(
+    orderItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+  )
+  const shippingPrice = addDecimals(itemsPrice > 100 ? 0 : 100)
+  const taxPrice = addDecimals(0.15 * itemsPrice)
+  const totalPrice = addDecimals(itemsPrice + shippingPrice + taxPrice)
+
+  return { shippingPrice, taxPrice, totalPrice }
+}
 
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
 const addOrderItems = asyncHandler(async (req, res) => {
-  const {
-    orderItems,
+  const { orderItems, shippingAddress, paymentMethod } = req.body
+
+  if (!Array.isArray(orderItems) || orderItems.length === 0) {
+    res.status(400)
+    throw new Error('No order items')
+  }
+
+  const uniqueProductIds = [
+    ...new Set(orderItems.map((item) => item.product && item.product.toString())),
+  ]
+
+  if (
+    uniqueProductIds.some(
+      (productId) => !mongoose.Types.ObjectId.isValid(productId)
+    )
+  ) {
+    res.status(400)
+    throw new Error('Invalid order items')
+  }
+
+  const products = await Product.find({
+    _id: { $in: uniqueProductIds },
+  }).select('_id name image price')
+  const productMap = new Map(
+    products.map((product) => [product._id.toString(), product])
+  )
+
+  if (products.length !== uniqueProductIds.length) {
+    res.status(400)
+    throw new Error('Invalid order items')
+  }
+
+  const normalizedOrderItems = []
+
+  for (const item of orderItems) {
+    const product = productMap.get(item.product.toString())
+    const qty = Number(item.qty)
+
+    if (!product || !Number.isInteger(qty) || qty <= 0) {
+      res.status(400)
+      throw new Error('Invalid order items')
+    }
+
+    normalizedOrderItems.push({
+      name: product.name,
+      qty,
+      image: product.image,
+      price: product.price,
+      product: product._id,
+    })
+  }
+
+  const { shippingPrice, taxPrice, totalPrice } =
+    calculateOrderPrices(normalizedOrderItems)
+
+  const order = new Order({
+    orderItems: normalizedOrderItems,
+    user: req.user._id,
     shippingAddress,
     paymentMethod,
-    itemsPrice,
     taxPrice,
     shippingPrice,
     totalPrice,
-  } = req.body
+  })
 
-  if (orderItems && orderItems.length === 0) {
-    res.status(400)
-    throw new Error('No order items')
-    return
-  } else {
-    const order = new Order({
-      orderItems,
-      user: req.user._id,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
-    })
+  const createdOrder = await order.save()
 
-    const createdOrder = await order.save()
-
-    res.status(201).json(createdOrder)
-  }
+  res.status(201).json(createdOrder)
 })
 
 // @desc    Get order by ID
