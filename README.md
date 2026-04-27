@@ -190,6 +190,60 @@ npm run dev
 
 If `npm run dev` is not enough for your environment, run backend and frontend in separate terminals so the frontend can start with `NODE_OPTIONS=--openssl-legacy-provider`.
 
+## Run with Docker Compose
+
+For a more reproducible local setup, this repository now includes `docker-compose.yml` with:
+
+- `mongo` as an internal service for the app network
+- `backend` on `5001`
+- `frontend` on `3000`
+
+Start the full stack:
+
+```bash
+docker compose up
+```
+
+Run in the background:
+
+```bash
+docker compose up -d
+```
+
+Seed the Compose MongoDB volume:
+
+```bash
+docker compose exec backend npm run data:import
+```
+
+Destroy seeded data in the Compose MongoDB volume:
+
+```bash
+docker compose exec backend npm run data:destroy
+```
+
+Stop the stack:
+
+```bash
+docker compose down
+```
+
+Remove containers and the MongoDB volume:
+
+```bash
+docker compose down -v
+```
+
+Notes:
+
+- The backend container uses `MONGO_URI=mongodb://mongo:27017/proshop`, so it talks to the Compose MongoDB service instead of a host MongoDB instance.
+- MongoDB is not published to the host by default. That avoids conflicts with an already running local MongoDB on port `27017`.
+- `JWT_SECRET` and `PAYPAL_CLIENT_ID` can be supplied from your shell or a local `.env`; otherwise Compose falls back to safe placeholders for development startup.
+- The frontend container uses `NODE_OPTIONS=--openssl-legacy-provider` for the same old CRA/Webpack reason as the host setup.
+- The frontend shares the backend container network namespace. This is intentional: the CRA dev proxy is hardcoded to `http://127.0.0.1:5001`, so sharing the backend network namespace preserves that behavior without changing application code.
+- Source directories are bind-mounted for development, and `node_modules` are kept in named Docker volumes so dependencies persist across restarts.
+- A fresh Compose volume starts with an empty catalog until you run `docker compose exec backend npm run data:import`.
+
 ## Build
 
 Create the frontend production build:
