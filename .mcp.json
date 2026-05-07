@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "feature-flags": {
+      "command": "node",
+      "args": ["./mcp/feature-flags/dist/index.js"],
+      "env": {
+        "FEATURES_JSON_PATH": "./backend/features.json"
+      }
+    }
+  }
+}
