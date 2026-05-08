@@ -27,3 +27,7 @@ yarn-error.log*
 
 # Qdrant vector DB storage (binary index, 100MB+)
 qdrant_storage/
+
+# Local Ollama runtime (model weights ~1GB+, sandbox-friendly home)
+.ollama-home/
+.ollama-models/
