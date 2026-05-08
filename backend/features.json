@@ -3,9 +3,12 @@
     "name": "New Search Algorithm",
     "description": "Replaces legacy regex-based keyword matching with a hybrid BM25 + TF-IDF ranking pipeline. Improves relevance for multi-word queries and handles common misspellings via fuzzy matching. Backend: new productController search path; index built on name, brand, category, description fields.",
     "status": "Testing",
-    "traffic_percentage": 15,
-    "last_modified": "2026-03-10",
-    "targeted_segments": ["beta_users", "internal"],
+    "traffic_percentage": 25,
+    "last_modified": "2026-05-08",
+    "targeted_segments": [
+      "beta_users",
+      "internal"
+    ],
     "rollout_strategy": "canary"
   },
   "semantic_search": {
@@ -14,9 +17,13 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-02-14",
-    "targeted_segments": ["internal"],
+    "targeted_segments": [
+      "internal"
+    ],
     "rollout_strategy": "canary",
-    "dependencies": ["search_v2"]
+    "dependencies": [
+      "search_v2"
+    ]
   },
   "search_autosuggest": {
     "name": "Search Autocomplete / Autosuggest",
@@ -24,7 +31,9 @@
     "status": "Testing",
     "traffic_percentage": 25,
     "last_modified": "2026-03-22",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "canary"
   },
   "cart_redesign": {
@@ -33,7 +42,9 @@
     "status": "Testing",
     "traffic_percentage": 10,
     "last_modified": "2026-04-01",
-    "targeted_segments": ["beta_users"],
+    "targeted_segments": [
+      "beta_users"
+    ],
     "rollout_strategy": "ab_test"
   },
   "save_for_later": {
@@ -42,9 +53,13 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-02-28",
-    "targeted_segments": ["authenticated"],
+    "targeted_segments": [
+      "authenticated"
+    ],
     "rollout_strategy": "canary",
-    "dependencies": ["cart_redesign"]
+    "dependencies": [
+      "cart_redesign"
+    ]
   },
   "guest_cart_persistence": {
     "name": "Guest Cart Persistence Across Sessions",
@@ -52,7 +67,9 @@
     "status": "Enabled",
     "traffic_percentage": 100,
     "last_modified": "2026-01-15",
-    "targeted_segments": ["guests"],
+    "targeted_segments": [
+      "guests"
+    ],
     "rollout_strategy": "full_release"
   },
   "express_checkout": {
@@ -61,9 +78,13 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-03-05",
-    "targeted_segments": ["returning_customers"],
+    "targeted_segments": [
+      "returning_customers"
+    ],
     "rollout_strategy": "canary",
-    "dependencies": ["guest_cart_persistence"]
+    "dependencies": [
+      "guest_cart_persistence"
+    ]
   },
   "multi_step_checkout_v2": {
     "name": "Redesigned Multi-Step Checkout",
@@ -71,7 +92,9 @@
     "status": "Testing",
     "traffic_percentage": 20,
     "last_modified": "2026-04-10",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "ab_test"
   },
   "gift_message": {
@@ -80,7 +103,9 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-02-20",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "full_release"
   },
   "paypal_express_buttons": {
@@ -89,7 +114,9 @@
     "status": "Enabled",
     "traffic_percentage": 100,
     "last_modified": "2026-01-08",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "full_release"
   },
   "apple_pay": {
@@ -98,7 +125,10 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-03-18",
-    "targeted_segments": ["safari_users", "mobile_ios"],
+    "targeted_segments": [
+      "safari_users",
+      "mobile_ios"
+    ],
     "rollout_strategy": "canary"
   },
   "stripe_alternative": {
@@ -107,7 +137,9 @@
     "status": "Testing",
     "traffic_percentage": 5,
     "last_modified": "2026-04-05",
-    "targeted_segments": ["beta_users"],
+    "targeted_segments": [
+      "beta_users"
+    ],
     "rollout_strategy": "canary"
   },
   "product_recommendations": {
@@ -116,7 +148,9 @@
     "status": "Testing",
     "traffic_percentage": 30,
     "last_modified": "2026-04-12",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "ab_test"
   },
   "recently_viewed": {
@@ -125,7 +159,9 @@
     "status": "Enabled",
     "traffic_percentage": 100,
     "last_modified": "2026-02-01",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "full_release"
   },
   "infinite_scroll": {
@@ -134,7 +170,9 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-03-28",
-    "targeted_segments": ["mobile"],
+    "targeted_segments": [
+      "mobile"
+    ],
     "rollout_strategy": "canary"
   },
   "admin_dashboard_v2": {
@@ -143,7 +181,9 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-04-08",
-    "targeted_segments": ["admin"],
+    "targeted_segments": [
+      "admin"
+    ],
     "rollout_strategy": "canary"
   },
   "admin_bulk_actions": {
@@ -152,9 +192,13 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-03-14",
-    "targeted_segments": ["admin"],
+    "targeted_segments": [
+      "admin"
+    ],
     "rollout_strategy": "full_release",
-    "dependencies": ["admin_dashboard_v2"]
+    "dependencies": [
+      "admin_dashboard_v2"
+    ]
   },
   "admin_advanced_filters": {
     "name": "Advanced Order and Product Filters in Admin",
@@ -162,7 +206,9 @@
     "status": "Testing",
     "traffic_percentage": 100,
     "last_modified": "2026-04-15",
-    "targeted_segments": ["admin"],
+    "targeted_segments": [
+      "admin"
+    ],
     "rollout_strategy": "full_release"
   },
   "reviews_moderation": {
@@ -171,7 +217,9 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-02-10",
-    "targeted_segments": ["admin"],
+    "targeted_segments": [
+      "admin"
+    ],
     "rollout_strategy": "full_release"
   },
   "photo_reviews": {
@@ -180,9 +228,13 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-03-02",
-    "targeted_segments": ["authenticated"],
+    "targeted_segments": [
+      "authenticated"
+    ],
     "rollout_strategy": "canary",
-    "dependencies": ["reviews_moderation"]
+    "dependencies": [
+      "reviews_moderation"
+    ]
   },
   "verified_purchase_badge": {
     "name": "Verified Purchase Badge on Reviews",
@@ -190,7 +242,9 @@
     "status": "Enabled",
     "traffic_percentage": 100,
     "last_modified": "2026-01-20",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "full_release"
   },
   "image_lazy_loading": {
@@ -199,7 +253,9 @@
     "status": "Enabled",
     "traffic_percentage": 100,
     "last_modified": "2026-01-05",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "full_release"
   },
   "code_splitting_optimisation": {
@@ -208,7 +264,9 @@
     "status": "Testing",
     "traffic_percentage": 50,
     "last_modified": "2026-04-18",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "canary"
   },
   "dark_mode": {
@@ -217,7 +275,9 @@
     "status": "Testing",
     "traffic_percentage": 20,
     "last_modified": "2026-04-20",
-    "targeted_segments": ["all"],
+    "targeted_segments": [
+      "all"
+    ],
     "rollout_strategy": "ab_test"
   },
   "guest_checkout": {
@@ -226,7 +286,9 @@
     "status": "Disabled",
     "traffic_percentage": 0,
     "last_modified": "2026-03-25",
-    "targeted_segments": ["guests"],
+    "targeted_segments": [
+      "guests"
+    ],
     "rollout_strategy": "canary"
   }
 }
