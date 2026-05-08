@@ -1,5 +1,16 @@
 {
   "name": "rag",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "ingest": "tsx ingest.ts",
+    "query": "tsx query.ts"
+  },
+  "dependencies": {
+    "@qdrant/js-client-rest": "^1.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0"
+  }
 }
