@@ -133,3 +133,16 @@ PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
 - Do not change seeded sample users/products casually; seed behavior is part of local onboarding.
 - Do not introduce new cross-cutting abstractions unless repeated behavior already exists in multiple places.
 - Do not change public route URLs, API response shapes, or Redux state shape without documenting the compatibility impact.
+
+## Searching Product Documentation (search-docs MCP)
+
+- For any questions about proshop_mern functionality, features, architecture, ADRs, runbooks, incidents — ALWAYS use the `search_project_docs` MCP tool first.
+- It is faster and returns relevant chunks with metadata.
+- ONLY if the vector search returned no useful results, or the full file content is needed based on chunk metadata → fall back to grep+read.
+- Do NOT start with grep+read across the project — it is slow and costly in tokens.
+
+## Managing Feature Flags (feature-flags MCP)
+
+- When the user asks about a feature's status ("what is the status of gift_message?", "is search_v2 enabled?") — call the feature-flags MCP `get_feature_info` tool; do not read `features.json` directly.
+- When the user wants to change a feature's status ("enable feature X", "put Y into Testing", "set traffic to 25%") — call the appropriate tools (`set_feature_state`, `adjust_traffic_rollout`). Never edit `backend/features.json` directly with Edit/Write.
+- When the user asks for a list of all features — use the `list_features` tool; do not grep the file.
