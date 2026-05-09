@@ -31,3 +31,6 @@ qdrant_storage/
 # Local Ollama runtime (model weights ~1GB+, sandbox-friendly home)
 .ollama-home/
 .ollama-models/
+
+# Python venv for reranker (sentence-transformers + torch, ~2GB)
+rag/.venv/
