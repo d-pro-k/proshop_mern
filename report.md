@@ -288,3 +288,15 @@ The feature enables the Stripe payment option currently commented out in `Paymen
 | 3 | `list_features` (feature-flags) | — | All 25 flags listed; `stripe_alternative` identified as Stripe payment feature |
 | 4 | `get_feature_info` (feature-flags) | `stripe_alternative` | Status: Testing, traffic: 5%, no blocking dependencies |
 | — | State change | — | Not performed — feature already in Testing |
+
+---
+
+## Reflection
+
+**Stack.** TypeScript MCP SDK + Zod for both servers, Qdrant 1.17 in Docker for the vector store, BGE-M3 (1024-dim, multilingual) via Ollama for embeddings, with all ingest/query code in Node/TS to keep one toolchain across MCP, ingestion, and query. The course corpus is bilingual EN+RU, so an English-only model like `text-embedding-3-small` was a non-starter; BGE-M3 is MIT-licensed, runs locally, has solid multilingual MIRACL numbers, and pairs cleanly with `bge-reranker-v2-m3` for Part 4. Qdrant was the simplest local option with built-in sparse-vector support that Part 4 hybrid search will need.
+
+**What was hard.** Atomic-semantic chunking with a 100-token soft floor produced 284 chunks but left many glossary and short API entries under-contextualized for dense retrieval; the fix was to embed an enriched string (`title + parent_headings + keywords + summary + text`) while keeping the raw `text` in the payload — a Contextual-Retrieval-style trick that visibly improved top-K relevance. Even then, vanilla dense retrieval did not consistently put the spec's "expected" file in top-1 (e.g. `payment_stripe_v3` lost to general payment ADRs because exact-token IDs are weak signal for dense embeddings), so we leaned on the optional `filter_type` / `filter_source_file` arguments instead of baking heuristics into the query layer. Local Ollama also fought the sandbox — `~/.ollama` writes and the default bind on `127.0.0.1:11434` were blocked, so the daemon runs with `HOME` and `OLLAMA_MODELS` redirected to in-repo `.ollama-home/` / `.ollama-models/`. During chunking, several `general-purpose` subagents hit token limits and had to be re-dispatched, and `pages/` plus `adrs+runbooks+incidents` needed a second pass with code-fence-aware heading parsing to clear the line-count gate.
+
+**What I would change.** Go straight to hybrid (BM25 + dense + RRF) with a reranker on top — the exact-token weakness above is a textbook case for sparse retrieval, and Part 4 should validate the lift. I would also batch the chunking through one deterministic Node script rather than parallel subagents; the throughput win was not worth the re-dispatch overhead on a 50K-word corpus.
+
+**IDE:** Claude Code.
