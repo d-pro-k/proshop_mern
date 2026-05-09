@@ -291,6 +291,26 @@ The feature enables the Stripe payment option currently commented out in `Paymen
 
 ---
 
+## Hybrid + Reranker
+
+The same three queries from §Search-docs MCP, run through three retrieval pipelines and graded on the top-1 `source_file` returned (no agentic filters, raw query in, raw chunks out):
+
+- ✓ — top-1 matches the spec-expected file
+- ≈ — top-1 is a related file on the same topic (a sibling chunk that discusses the answer but is not the canonical document the spec calls out)
+- ✗ — top-1 is unrelated
+
+| Mode | Q1 — DB choice | Q2 — `payment_stripe_v3` deps | Q3 — last checkout incident |
+|------|----------------|-------------------------------|-----------------------------|
+| Naive RAG (`rag/query.ts`, dense only, no filters) | ≈ `dev-history.md` | ≈ `adrs/adr-004-paypal-vs-stripe.md` | ≈ `runbooks/incident-response.md` |
+| Hybrid — BM25 + dense + RRF (`rag/hybrid.ts`) | ≈ `best-practices.md` | ≈ `adrs/adr-004-paypal-vs-stripe.md` | ≈ `runbooks/incident-response.md` |
+| Hybrid + Reranker — BGE-reranker-v2-m3 (`rag/hybrid-rerank.ts`) | ≈ `best-practices.md` | ≈ `features/checkout.md` | ≈ `runbooks/incident-response.md` |
+
+Spec-expected top-1 by query: Q1 — `adrs/adr-001-mongodb-vs-postgres.md`; Q2 — `features/payments.md` or `feature-flags-spec.md`; Q3 — `incidents/i-001-paypal-double-charge.md`.
+
+**Reflection.** No pipeline reaches a strict ✓ at top-1 on this corpus, which is itself a useful negative result rather than a setup defect — atomic chunking spreads each canonical answer across several near-equivalent documents (`dev-history.md` and `architecture.md` both narrate the MongoDB decision; `runbooks/incident-response.md` lexically contains the word "incident" many more times than `incidents/i-001-paypal-double-charge.md` itself does), so even a perfect retriever can only break the tie via signal that is not in the chunk text. Hybrid did its expected job on Q2: the literal token `payment_stripe_v3` produced a clean BM25 hit with score 1.0 on `adrs/adr-004` and pulled `feature-flags-spec.md` (✓) into top-3 with a higher relative score than the dense baseline, partially supporting the +35% BM25-over-dense intuition from `refs/chunking-strategies-guide.md`. Reranker's effect was narrower: it deduplicated the two `adrs/adr-004` chunks in Q2 and lifted `feature-flags-spec.md` from top-3 to top-2, but it never broke the strict top-1 expectation — the +25% reranker-lift number from the same guide did not reproduce on three queries against a 284-chunk corpus. Q3 was the most instructive failure mode: naive RAG actually had `incidents/i-001-paypal-double-charge.md` at positions 3 and 4 of top-5, but hybrid's BM25 weight on the literal "incident" token over-promoted duplicates of `runbooks/incident-response.md`, and the reranker — with six i-001 chunks already present at positions 6, 8, 11, 18, 22, 25 of the hybrid top-25 pool — still ranked five runbook duplicates above all of them. The takeaway is that on a small, deliberately ambiguous corpus, sparser layers of retrieval (BM25, cross-encoder) can amplify lexical traps as easily as they overcome cross-lingual weakness; a real production setup would need document-level deduplication or MMR-style diversification before reranking, not just more layers stacked on top.
+
+---
+
 ## Reflection
 
 **Stack.** TypeScript MCP SDK + Zod for both servers, Qdrant 1.17 in Docker for the vector store, BGE-M3 (1024-dim, multilingual) via Ollama for embeddings, with all ingest/query code in Node/TS to keep one toolchain across MCP, ingestion, and query. The course corpus is bilingual EN+RU, so an English-only model like `text-embedding-3-small` was a non-starter; BGE-M3 is MIT-licensed, runs locally, has solid multilingual MIRACL numbers, and pairs cleanly with `bge-reranker-v2-m3` for Part 4. Qdrant was the simplest local option with built-in sparse-vector support that Part 4 hybrid search will need.
