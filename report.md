@@ -110,3 +110,181 @@ I ran the project locally with Docker MongoDB, imported seed data, started the b
 ```
 
 **Summary:** `search_v2` — `status: Testing`, `traffic_percentage: 25`, `last_modified: 2026-05-08`. Scenario completed without manual intervention.
+
+---
+
+## Search-docs MCP
+
+**Scenario:** three questions answered via `search_project_docs` tool against the proshop_mern documentation corpus (284 chunks, BGE-M3 embeddings, Qdrant local).
+
+### Query 1 — "What DB is used in proshop_mern and why?"
+
+**Request:**
+```json
+{ "query": "What database is used in proshop_mern and why was it chosen?", "filter_type": "adr", "top_k": 3 }
+```
+
+**Top-3 results:**
+
+| # | source_file | score | snippet |
+|---|---|---|---|
+| 1 | `adrs/adr-001-mongodb-vs-postgres.md` | 0.603 | "Before the first commit, the team needed to select a database for the ProShop e-c…" |
+| 2 | `adrs/adr-003-jwt-vs-session.md` | 0.522 | "The ProShop API (Express) needed an authentication mechanism…" |
+| 3 | `adrs/adr-002-redux-vs-context.md` | 0.517 | "…RTK Query migration planned for v3.0…" |
+
+**Answer:** MongoDB (via Mongoose) was chosen as the primary database at initial project setup (ADR-001, status: Accepted, 2023-01-10). The decision was made by the engineering team before the first commit. Top-1 chunk was `adrs/adr-001-mongodb-vs-postgres.md`; chunks 2–3 are unrelated ADRs (auth, state management) that share structural similarity with the query.
+
+---
+
+### Query 2 — "Which features depend on payment_stripe_v3?"
+
+**Requests:**
+```json
+{ "query": "Which features depend on payment_stripe_v3?", "filter_type": "spec", "top_k": 3 }
+{ "query": "payment_stripe_v3 dependencies express_checkout", "filter_source_file": "feature-flags-spec.md", "top_k": 5 }
+```
+
+**Top results:**
+
+| # | source_file | score | section | snippet |
+|---|---|---|---|---|
+| 1 | `feature-flags-spec.md` | 0.648 | "4. Feature Flag Catalog — Checkout, Payments" | "`express_checkout` — Express One-Click Checkout…" |
+| 2 | `feature-flags-spec.md` | 0.522 | "3. MCP Server Tool Contract" | "Tool 3: `adjust_traffic_rollout`…" |
+| 3 | `feature-flags-spec.md` | 0.515 | "2. The `features.json` Format" | "Required Fields…" |
+
+**Answer:** The search returned the Checkout/Payments catalog section (score 0.648) covering `express_checkout` as the most relevant chunk. A follow-up `get_feature_info("express_checkout")` confirmed its `dependencies: ["guest_cart_persistence"]` — not Stripe. The name `payment_stripe_v3` from the homework spec is a conceptual identifier; the runtime feature ID is `stripe_alternative`. No feature in `features.json` lists `stripe_alternative` as an explicit dependency.
+
+---
+
+### Query 3 — "What happened during the last checkout incident?"
+
+**Request:**
+```json
+{ "query": "What happened during the last checkout incident?", "filter_type": "incident", "top_k": 3 }
+```
+
+**Top-3 results (all from same document):**
+
+| # | source_file | score | section | snippet |
+|---|---|---|---|---|
+| 1 | `incidents/i-001-paypal-double-charge.md` | 0.530 | "Root Cause Analysis" | "The `@paypal/react-paypal-js` SDK fires the `onApprove` callback…" |
+| 2 | `incidents/i-001-paypal-double-charge.md` | 0.527 | "Summary" | "Severity: P1 (production financial impact), Status: Resolved…" |
+| 3 | `incidents/i-001-paypal-double-charge.md` | 0.522 | "Timeline" | "2023-11-03 21:14: PayPal sandbox receives payment…" |
+
+**Answer:** The last checkout incident (i-001, detected 2023-11-04, severity P1) was a PayPal double-charge. The `@paypal/react-paypal-js` SDK fired the `onApprove` callback twice on a single payment authorization, and the handler called `payOrder` both times — resulting in two orders created and two payments charged. The incident was resolved in ~38 hours (2023-11-06). All three top-K chunks came from `incidents/i-001-paypal-double-charge.md`, confirming high retrieval precision with the `incident` filter.
+
+---
+
+## End-to-end
+
+**Scenario:** investigate the Stripe payment feature (`payment_stripe_v3` in the homework spec) using both MCP servers — find documentation via search-docs, check runtime state via feature-flags, conditionally promote, cite documentation.
+
+### Tool call 1 — `search_project_docs` (search-docs MCP)
+
+**Request:**
+```json
+{
+  "query": "payment_stripe_v3 what is it purpose description dependencies",
+  "filter_source_file": "feature-flags-spec.md",
+  "top_k": 3
+}
+```
+
+**Response (top-1):**
+```json
+{
+  "source_file": "feature-flags-spec.md",
+  "title": "Feature Flags Specification — ProShop MERN",
+  "parent_headings": ["4. Feature Flag Catalog"],
+  "score": 0.554,
+  "snippet": "## 4. Feature Flag Catalog — Checkout, Payments ### Checkout #### `express_checkout` — Express One-Click Checkout…"
+}
+```
+
+**Observation:** search returned the Checkout/Payments catalog section; `payment_stripe_v3` is not a direct chunk title. Proceeding to feature-flags MCP to resolve the runtime ID.
+
+---
+
+### Tool call 2 — `get_feature_info` (feature-flags MCP) — initial lookup
+
+**Request:**
+```json
+{ "feature_id": "payment_stripe_v3" }
+```
+
+**Response:**
+```json
+{
+  "error": "FEATURE_NOT_FOUND",
+  "message": "No feature with ID 'payment_stripe_v3' exists in features.json.",
+  "feature_id": "payment_stripe_v3"
+}
+```
+
+---
+
+### Tool call 3 — `list_features` (feature-flags MCP) — resolve ID
+
+**Request:** `list_features()`
+
+**Response (payment-related excerpt):**
+```json
+[
+  { "feature_id": "paypal_express_buttons", "name": "PayPal Express Checkout Buttons", "status": "Enabled", "traffic_percentage": 100 },
+  { "feature_id": "apple_pay", "name": "Apple Pay / Web Payments API", "status": "Disabled", "traffic_percentage": 0 },
+  { "feature_id": "stripe_alternative", "name": "Stripe as Alternative Payment Processor", "status": "Testing", "traffic_percentage": 5 }
+]
+```
+
+**Resolution:** `payment_stripe_v3` from the homework spec → `stripe_alternative` in the runtime `features.json`.
+
+---
+
+### Tool call 4 — `get_feature_info` (feature-flags MCP) — full state
+
+**Request:**
+```json
+{ "feature_id": "stripe_alternative" }
+```
+
+**Response:**
+```json
+{
+  "feature_id": "stripe_alternative",
+  "name": "Stripe as Alternative Payment Processor",
+  "description": "Enables the Stripe payment method option that is currently commented out in PaymentScreen.js. Adds a Stripe checkout backend route to orderController and handles webhooks for async payment confirmation. Acts as a fallback when PayPal is unavailable and provides credit card tokenization independent of PayPal.",
+  "status": "Testing",
+  "traffic_percentage": 5,
+  "last_modified": "2026-04-05",
+  "targeted_segments": ["beta_users"],
+  "rollout_strategy": "canary"
+}
+```
+
+---
+
+### Decision
+
+Feature `stripe_alternative` is already in **Testing** at 5% traffic. The scenario condition "if Disabled → promote to Testing and set traffic to 25%" does not apply. No state change was performed; current state is preserved.
+
+---
+
+### Documentation quote
+
+From `get_feature_info("stripe_alternative")` description (sourced from `feature-flags-spec.md` via the RAG corpus):
+
+> "Acts as a fallback when PayPal is unavailable and provides credit card tokenization independent of PayPal."
+
+The feature enables the Stripe payment option currently commented out in `PaymentScreen.js`, adds a backend route to `orderController`, and handles async payment confirmation via webhooks.
+
+---
+
+### Tool call chain summary
+
+| Step | Tool (MCP) | Input | Result |
+|------|-----------|-------|--------|
+| 1 | `search_project_docs` (search-docs) | `payment_stripe_v3`, `filter_source_file: feature-flags-spec.md` | Checkout/Payments catalog section returned; no direct `payment_stripe_v3` chunk |
+| 2 | `get_feature_info` (feature-flags) | `payment_stripe_v3` | FEATURE_NOT_FOUND — name mismatch between spec and runtime |
+| 3 | `list_features` (feature-flags) | — | All 25 flags listed; `stripe_alternative` identified as Stripe payment feature |
+| 4 | `get_feature_info` (feature-flags) | `stripe_alternative` | Status: Testing, traffic: 5%, no blocking dependencies |
+| — | State change | — | Not performed — feature already in Testing |
