@@ -134,6 +134,20 @@ PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
 - Do not introduce new cross-cutting abstractions unless repeated behavior already exists in multiple places.
 - Do not change public route URLs, API response shapes, or Redux state shape without documenting the compatibility impact.
 
+## Design rules
+
+See [`./DESIGN.md`](./DESIGN.md) for the project's visual language: color palette, typography, spacing scale, border radius, elevation, component patterns, and interactive states. All UI work (new components, redesigns) must comply.
+
+### Always apply (anti-AI-slop guards)
+
+- Generous spacing — plenty of whitespace, never cramped (8px grid: 8 / 16 / 24 / 32 / 48 / 64; `4` only for icon-text gaps).
+- Cards — subtle elevation, NEVER heavy borders (1px max).
+- NO box shadows by default — depth from background contrast (3 levels: page / card / card-alt).
+- Every interactive element MUST have hover, focus, loading, empty, and error states.
+- Font: Geist or Manrope (NOT Inter).
+- NEVER: 2-col comparison blocks, cringe gradients (linear-gradient purple/violet), default Inter, `dark:bg-gray-900` prefixes, raw hex inside components.
+- Be a human designer so it doesn't look like AI. With design taste.
+
 ## Searching Product Documentation (search-docs MCP)
 
 - For any questions about proshop_mern functionality, features, architecture, ADRs, runbooks, incidents — ALWAYS use the `search_project_docs` MCP tool first.
