@@ -1,0 +1,52 @@
+/* Feature Flags page design tokens — subset of DESIGN.md
+ * Prefix --ff- chosen for safe coexistence with Bootstrap and future
+ * full shadcn-migration (rename to --background/--foreground etc. via find-replace).
+ * Direct hex values (not hsl(var(...)) composition) to avoid resolve issues.
+ */
+
+:root {
+  /* Foundations */
+  --ff-bg: #FFFFFF;
+  --ff-fg: #0A2540;
+  --ff-muted: #64748B;
+  --ff-border: #E2E8F0;
+  --ff-font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Sidebar */
+  --ff-sidebar-bg: #0A2540;
+  --ff-sidebar-text: rgba(255, 255, 255, 0.72);
+  --ff-sidebar-text-strong: #FFFFFF;
+  --ff-sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+  --ff-sidebar-active-bg: rgba(255, 255, 255, 0.10);
+  --ff-sidebar-section-label: rgba(255, 255, 255, 0.45);
+  --ff-sidebar-divider: rgba(255, 255, 255, 0.10);
+
+  /* Accent */
+  --ff-accent: #0EA5E9;
+  --ff-accent-ring: rgba(14, 165, 233, 0.20);
+
+  /* Status colors */
+  --ff-status-enabled-bg: #DCFCE7;
+  --ff-status-enabled-text: #047857;
+  --ff-status-testing-bg: #E0F2FE;
+  --ff-status-testing-text: #075985;
+  --ff-status-disabled-bg: #F1F5F9;
+  --ff-status-disabled-text: #475569;
+
+  /* Toggle */
+  --ff-toggle-off-bg: #CBD5E1;
+
+  /* Table rows */
+  --ff-row-head-bg: #F8FAFC;
+  --ff-row-border: #F1F5F9;
+  --ff-row-hover-bg: rgba(14, 165, 233, 0.05);
+
+  /* Skeleton */
+  --ff-skeleton-bg: #F1F5F9;
+
+  /* Error Alert */
+  --ff-error-bg: #FEF2F2;
+  --ff-error-border: #FECACA;
+  --ff-error-fg: #991B1B;
+}
+

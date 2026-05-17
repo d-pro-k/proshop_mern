@@ -19,6 +19,7 @@ import ProductListScreen from './screens/ProductListScreen'
 import ProductEditScreen from './screens/ProductEditScreen'
 import OrderListScreen from './screens/OrderListScreen'
 import DashboardFeaturesScreen from './screens/DashboardFeaturesScreen'
+import FeatureFlagsScreen from './screens/admin/FeatureFlagsScreen'
 
 const App = () => {
   return (
@@ -50,6 +51,7 @@ const App = () => {
           <Route path='/admin/product/:id/edit' component={ProductEditScreen} />
           <Route path='/admin/orderlist' component={OrderListScreen} />
           <Route path='/admin/features' component={DashboardFeaturesScreen} />
+          <Route path='/admin/feature-flags' component={FeatureFlagsScreen} />
           <Route path='/search/:keyword' component={HomeScreen} exact />
           <Route path='/page/:pageNumber' component={HomeScreen} exact />
           <Route
