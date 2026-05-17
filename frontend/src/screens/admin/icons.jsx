@@ -125,3 +125,27 @@ export const ArrowUpIcon = (p) => (
     <polyline points='5 12 12 5 19 12' />
   </Svg>
 )
+
+export const PencilIcon = (p) => (
+  <Svg {...p}>
+    <path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' />
+  </Svg>
+)
+
+export const Trash2Icon = (p) => (
+  <Svg {...p}>
+    <path d='M3 6h18' />
+    <path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6' />
+    <path d='M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' />
+    <line x1='10' y1='11' x2='10' y2='17' />
+    <line x1='14' y1='11' x2='14' y2='17' />
+  </Svg>
+)
+
+export const AlertTriangleIcon = (p) => (
+  <Svg {...p}>
+    <path d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z' />
+    <line x1='12' y1='9' x2='12' y2='13' />
+    <line x1='12' y1='17' x2='12.01' y2='17' />
+  </Svg>
+)

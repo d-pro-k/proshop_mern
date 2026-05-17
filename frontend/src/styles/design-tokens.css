@@ -48,5 +48,21 @@
   --ff-error-bg: #FEF2F2;
   --ff-error-border: #FECACA;
   --ff-error-fg: #991B1B;
+
+  /* Role badges (UserList) — sky/slate, semantically distinct from --ff-status-* */
+  --ff-role-admin-bg: #E0F2FE;
+  --ff-role-admin-text: #075985;
+  --ff-role-customer-bg: #F1F5F9;
+  --ff-role-customer-text: #475569;
+
+  /* Modal overlay */
+  --ff-modal-overlay-bg: rgba(0, 0, 0, 0.4);
+
+  /* Danger (destructive actions — Delete button + icon-button hover) */
+  --ff-danger-bg: #DC2626;
+  --ff-danger-bg-hover: #B91C1C;
+  --ff-danger-fg: #991B1B;
+  --ff-danger-soft-bg: #FEF2F2;
+  --ff-danger-soft-border: #FECACA;
 }
 
