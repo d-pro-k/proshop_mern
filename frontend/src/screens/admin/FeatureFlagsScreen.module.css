@@ -227,36 +227,6 @@
   margin-bottom: 20px;
 }
 
-/* Info icon on tab label */
-.tabHint {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 4px;
-  color: var(--ff-muted);
-  opacity: 0.55;
-  vertical-align: middle;
-  cursor: default;
-}
-.tabHint:hover {
-  opacity: 1;
-}
-
-/* Fixed tooltip — escapes overflow:hidden on any ancestor */
-.fixedTooltip {
-  position: fixed;
-  z-index: 9999;
-  background: var(--ff-fg);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 400;
-  font-family: var(--ff-font-sans);
-  padding: 5px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-  pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
 .toolbarMain {
   display: flex;
   align-items: stretch;

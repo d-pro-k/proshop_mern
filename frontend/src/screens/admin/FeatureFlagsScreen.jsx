@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Link, useLocation, useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import s from './FeatureFlagsScreen.module.css'
@@ -17,95 +17,28 @@ import {
   RowsCompactIcon,
   AlertCircleIcon,
   ArrowUpIcon,
-  InfoIcon,
 } from './icons'
 
-var VIEW_TABS = ['All', 'Active', 'Disabled', 'Recently changed']
+var VIEW_TABS = ['All', 'Enabled', 'Testing', 'Disabled']
 
-var TOOLTIP_HEIGHT = 30
-var TOOLTIP_MARGIN = 6
-var TOOLTIP_MAX_WIDTH = 280
-
-var InfoTooltip = function (props) {
-  var text = props.text
-  var tooltipState = useState(null)
-  var tooltip = tooltipState[0]
-  var setTooltip = tooltipState[1]
-  var ref = useRef(null)
-
-  function show() {
-    if (!ref.current) return
-    var r = ref.current.getBoundingClientRect()
-    var iconCX = r.left + r.width / 2
-    var vw = window.innerWidth
-
-    // Decide vertical: above if there's room, else below
-    var spaceAbove = r.top
-    var below = spaceAbove < TOOLTIP_HEIGHT + TOOLTIP_MARGIN
-    var top = below
-      ? r.bottom + TOOLTIP_MARGIN
-      : r.top - TOOLTIP_MARGIN
-
-    // Clamp horizontal so tooltip stays inside viewport
-    var estimatedHalf = Math.min(TOOLTIP_MAX_WIDTH, text.length * 7) / 2
-    var left = Math.max(estimatedHalf + 8, Math.min(iconCX, vw - estimatedHalf - 8))
-
-    setTooltip({ left: left, top: top, below: below })
-  }
-  function hide() { setTooltip(null) }
-
-  return (
-    <React.Fragment>
-      <span
-        ref={ref}
-        className={s.tabHint}
-        onMouseEnter={show}
-        onMouseLeave={hide}
-        onFocus={show}
-        onBlur={hide}
-        tabIndex={0}
-        role="note"
-        aria-label={text}
-      >
-        <InfoIcon size={12} />
-      </span>
-      {tooltip && (
-        <div
-          className={s.fixedTooltip}
-          style={{
-            left: tooltip.left,
-            top: tooltip.top,
-            transform: tooltip.below
-              ? 'translateX(-50%)'
-              : 'translateX(-50%) translateY(-100%)',
-          }}
-        >
-          {text}
-        </div>
-      )}
-    </React.Fragment>
-  )
+// Effective status = what the badge shows for a feature given the toggle state.
+// Toggle off → 'Disabled' regardless of API value. Toggle on → original status
+// (preserves 'Testing'); originally-disabled features become 'Enabled' when toggled on.
+function effectiveStatus(feature, toggles) {
+  var on = toggles[feature.id]
+  if (on === false) return 'Disabled'
+  if (on === undefined) return feature.status
+  return feature.status === 'Disabled' ? 'Enabled' : feature.status
 }
 
-// Rolling 30-day window for "Recently changed"
-var RECENT_CUTOFF = (function () {
-  var d = new Date()
-  d.setDate(d.getDate() - 30)
-  return d.toISOString().slice(0, 10)
-})()
-
-function getViewCount(features, view) {
-  if (view === 'Active') return features.filter(function (f) { return f.status !== 'Disabled' }).length
-  if (view === 'Disabled') return features.filter(function (f) { return f.status === 'Disabled' }).length
-  if (view === 'Recently changed') return features.filter(function (f) { return f.modified >= RECENT_CUTOFF }).length
-  return features.length
+function getViewCount(features, view, toggles) {
+  if (view === 'All') return features.length
+  return features.filter(function (f) { return effectiveStatus(f, toggles) === view }).length
 }
 
-function filterByView(features, view) {
-  if (view === 'Active') return features.filter(function (f) { return f.status !== 'Disabled' })
-  if (view === 'Disabled') return features.filter(function (f) { return f.status === 'Disabled' })
-  if (view === 'Recently changed') return features.filter(function (f) { return f.modified >= RECENT_CUTOFF })
-  return features
+function filterByView(features, view, toggles) {
+  if (view === 'All') return features
+  return features.filter(function (f) { return effectiveStatus(f, toggles) === view })
 }
 
 function initials(name) {
@@ -180,13 +113,13 @@ var FeatureFlagsScreen = function () {
 
   var viewCounts = useMemo(function () {
     return VIEW_TABS.reduce(function (acc, v) {
-      acc[v] = getViewCount(features, v)
+      acc[v] = getViewCount(features, v, toggles)
       return acc
     }, {})
-  }, [features])
+  }, [features, toggles])
 
   var displayed = useMemo(function () {
-    var list = filterByView(features, activeView)
+    var list = filterByView(features, activeView, toggles)
     var q = search.trim().toLowerCase()
     if (q) {
       list = list.filter(function (f) {
@@ -198,18 +131,18 @@ var FeatureFlagsScreen = function () {
     var dir = sort.dir
     return list.slice().sort(function (a, b) {
       var va, vb
-      if (field === 'status') { va = a.status; vb = b.status }
+      if (field === 'status') { va = effectiveStatus(a, toggles); vb = effectiveStatus(b, toggles) }
       else if (field === 'traffic') { va = a.traffic; vb = b.traffic }
       else if (field === 'enabled') {
-        va = a.status !== 'Disabled' ? 1 : 0
-        vb = b.status !== 'Disabled' ? 1 : 0
+        va = effectiveStatus(a, toggles) !== 'Disabled' ? 1 : 0
+        vb = effectiveStatus(b, toggles) !== 'Disabled' ? 1 : 0
       }
       else { va = a.name.toLowerCase(); vb = b.name.toLowerCase() }
       if (va < vb) return dir === 'asc' ? -1 : 1
       if (va > vb) return dir === 'asc' ? 1 : -1
       return 0
     })
-  }, [features, activeView, search, sort])
+  }, [features, activeView, search, sort, toggles])
 
   var chips = useMemo(function () {
     var c = []
@@ -340,7 +273,8 @@ var FeatureFlagsScreen = function () {
           {displayed.map(function (feature) {
             var on = toggles[feature.id]
             var traffic = sliders[feature.id] !== undefined ? sliders[feature.id] : feature.traffic
-            var isDisabled = feature.status === 'Disabled'
+            var status = effectiveStatus(feature, toggles)
+            var isDisabled = status === 'Disabled'
             return (
               <tr key={feature.id} className={isDisabled ? s.rowDisabled : ''}>
                 <td>
@@ -348,9 +282,9 @@ var FeatureFlagsScreen = function () {
                   <div className={s.featureDescription}>{feature.description}</div>
                   {/* Shown only when Status/Traffic columns are hidden (responsive) */}
                   <div className={s.inlineMeta}>
-                    <span className={s.statusBadge + ' ' + s['status_' + feature.status]}>
+                    <span className={s.statusBadge + ' ' + s['status_' + status]}>
                       <span className={s.statusDot} aria-hidden="true" />
-                      {feature.status}
+                      {status}
                     </span>
                     <div className={s.inlineSliderWrap}>
                       <input
@@ -380,9 +314,9 @@ var FeatureFlagsScreen = function () {
                   </div>
                 </td>
                 <td>
-                  <span className={s.statusBadge + ' ' + s['status_' + feature.status]}>
+                  <span className={s.statusBadge + ' ' + s['status_' + status]}>
                     <span className={s.statusDot} aria-hidden="true" />
-                    {feature.status}
+                    {status}
                   </span>
                 </td>
                 <td className={s.sliderCell}>
@@ -540,9 +474,6 @@ var FeatureFlagsScreen = function () {
                     >
                       {view}
                       <span className={s.viewTabCount}>{viewCounts[view] || 0}</span>
-                      {view === 'Recently changed' && (
-                        <InfoTooltip text={'Last 30 days · since ' + RECENT_CUTOFF} />
-                      )}
                     </button>
                   )
                 })}
