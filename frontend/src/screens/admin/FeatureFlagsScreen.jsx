@@ -203,13 +203,13 @@ var FeatureFlagsScreen = function () {
   function renderEmpty() {
     return (
       <div className={s.empty}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+        <div className={s.emptyIconWrap}>
           <span style={{ opacity: 0.3 }}><FlagIcon size={32} /></span>
         </div>
-        <div style={{ fontWeight: 500, marginBottom: 4, color: 'var(--ff-fg)' }}>
+        <div className={s.emptyTitle}>
           No feature flags found
         </div>
-        <div style={{ fontSize: 13 }}>
+        <div className={s.emptyDesc}>
           {isFiltered
             ? 'Try adjusting your search or filters.'
             : 'Create your first feature flag to get started.'}

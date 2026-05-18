@@ -10,7 +10,7 @@
   font-family: var(--ff-font-sans);
   font-size: 14px;
   border-radius: 6px !important;
-  padding: 7px 12px !important;
+  padding: 6px 12px !important;
   min-width: 220px;
   transition: background 120ms ease, border-color 120ms ease;
 }
@@ -36,7 +36,7 @@
   font-size: 14px;
   font-weight: 500;
   border-radius: 6px !important;
-  padding: 7px 16px !important;
+  padding: 6px 16px !important;
   margin-left: 8px;
   transition: background 120ms ease, border-color 120ms ease;
 }

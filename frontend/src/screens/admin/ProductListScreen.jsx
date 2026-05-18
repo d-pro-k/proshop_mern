@@ -233,7 +233,7 @@ var ProductListScreen = function () {
     var isFilteredEmpty = kind === 'filtered' || isFiltered
     return (
       <div className={s.empty}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+        <div className={s.emptyIconWrap}>
           <span style={{ opacity: 0.3 }}><PackageIcon size={32} /></span>
         </div>
         <div className={s.emptyTitle}>
@@ -447,7 +447,7 @@ var ProductListScreen = function () {
           </div>
 
           {(errorDelete || errorCreate) && (
-            <div className={s.errorAlert} role="alert" style={{ marginBottom: 16 }}>
+            <div className={`${s.errorAlert} ${s.errorAlertWithMargin}`} role="alert">
               <span className={s.errorIcon}><AlertCircleIcon size={20} /></span>
               <div className={s.errorBody}>
                 <div className={s.errorTitle}>

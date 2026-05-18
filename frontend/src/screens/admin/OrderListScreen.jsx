@@ -203,7 +203,7 @@ var OrderListScreen = function () {
     var isFilteredEmpty = kind === 'filtered' || isFiltered
     return (
       <div className={s.empty}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+        <div className={s.emptyIconWrap}>
           <span style={{ opacity: 0.3 }}><ShoppingBagIcon size={32} /></span>
         </div>
         <div className={s.emptyTitle}>

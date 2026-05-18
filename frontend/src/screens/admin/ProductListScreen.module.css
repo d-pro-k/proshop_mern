@@ -85,7 +85,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 12px;
+  padding: 6px 12px;
   border-radius: 6px;
   color: var(--ff-sidebar-text);
   text-decoration: none;
@@ -117,7 +117,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 12px;
+  padding: 6px 12px;
   border-radius: 6px;
   color: var(--ff-sidebar-text);
   text-decoration: none;
@@ -238,7 +238,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: 6px;
   background: var(--ff-accent);
   border: 1px solid var(--ff-accent);
@@ -294,7 +294,7 @@
 }
 .input {
   width: 100%;
-  padding: 7px 36px 7px 32px;
+  padding: 6px 32px 6px 32px;
   border: 1px solid var(--ff-border);
   border-radius: 6px;
   font-size: 13px;
@@ -445,7 +445,7 @@
   background: var(--ff-row-hover-bg);
 }
 .table td {
-  padding: 14px 16px;
+  padding: 12px 16px;
   vertical-align: middle;
   font-size: 14px;
   color: var(--ff-fg);
@@ -576,6 +576,9 @@
   border-radius: 6px;
   padding: 16px;
 }
+.errorAlertWithMargin {
+  margin-bottom: 16px;
+}
 .errorIcon {
   flex-shrink: 0;
   margin-top: 2px;
@@ -609,6 +612,11 @@
   padding: 64px 16px;
   text-align: center;
   color: var(--ff-muted);
+}
+.emptyIconWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
 }
 .emptyTitle {
   font-weight: 500;
@@ -742,7 +750,7 @@
 .mobileNavItem {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   padding: 10px 12px;
   color: var(--ff-sidebar-text);
   text-decoration: none;

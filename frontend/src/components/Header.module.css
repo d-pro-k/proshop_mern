@@ -9,8 +9,8 @@
 .navbar {
   background: var(--ff-sidebar-bg) !important;
   font-family: var(--ff-font-sans);
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 /* Brand */
@@ -32,7 +32,7 @@
   color: var(--ff-sidebar-text) !important;
   font-weight: 500;
   font-size: 14px;
-  padding: 8px 14px !important;
+  padding: 8px 12px !important;
   border-radius: 6px;
   transition: background 120ms ease, color 120ms ease;
 }
