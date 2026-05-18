@@ -17,7 +17,7 @@ import UserListScreen from './screens/admin/UserListScreen'
 import UserEditScreen from './screens/UserEditScreen'
 import ProductListScreen from './screens/admin/ProductListScreen'
 import ProductEditScreen from './screens/ProductEditScreen'
-import OrderListScreen from './screens/OrderListScreen'
+import OrderListScreen from './screens/admin/OrderListScreen'
 import DashboardFeaturesScreen from './screens/DashboardFeaturesScreen'
 import FeatureFlagsScreen from './screens/admin/FeatureFlagsScreen'
 

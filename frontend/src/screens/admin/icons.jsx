@@ -156,3 +156,16 @@ export const PlusIcon = (p) => (
     <line x1='5' y1='12' x2='19' y2='12' />
   </Svg>
 )
+
+export const EyeIcon = (p) => (
+  <Svg {...p}>
+    <path d='M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z' />
+    <circle cx='12' cy='12' r='3' />
+  </Svg>
+)
+
+export const CheckIcon = (p) => (
+  <Svg {...p}>
+    <polyline points='20 6 9 17 4 12' />
+  </Svg>
+)
