@@ -85,7 +85,7 @@
  * intentionally NOT accent-blue (reserved for sidebar active-page indicator). */
 :global(.dropdown-item:hover),
 :global(.dropdown-item:focus-visible) {
-  background: #F1F5F9 !important;
+  background: var(--ff-dropdown-item-hover-bg) !important;
   color: var(--ff-fg) !important;
   outline: none;
 }

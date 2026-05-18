@@ -4,7 +4,7 @@
  */
 
 .input {
-  background: rgba(255, 255, 255, 0.10) !important;
+  background: var(--ff-sidebar-hover-bg) !important;
   border: 1px solid var(--ff-sidebar-divider) !important;
   color: var(--ff-sidebar-text-strong) !important;
   font-family: var(--ff-font-sans);
@@ -21,7 +21,7 @@
 }
 
 .input:focus {
-  background: rgba(255, 255, 255, 0.16) !important;
+  background: var(--ff-search-input-focus-bg) !important;
   border-color: var(--ff-accent) !important;
   box-shadow: 0 0 0 3px var(--ff-accent-ring) !important;
   color: var(--ff-sidebar-text-strong) !important;
@@ -31,7 +31,7 @@
 .button {
   background: var(--ff-accent) !important;
   border: 1px solid var(--ff-accent) !important;
-  color: #fff !important;
+  color: var(--ff-sidebar-text-strong) !important;
   font-family: var(--ff-font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -45,7 +45,7 @@
 .button:focus {
   background: var(--ff-accent-hover) !important;
   border-color: var(--ff-accent-hover) !important;
-  color: #fff !important;
+  color: var(--ff-sidebar-text-strong) !important;
 }
 
 .button:focus-visible {

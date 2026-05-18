@@ -693,7 +693,7 @@
   border-radius: 8px;
   max-width: 440px;
   width: 100%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ff-modal-shadow);
   display: flex;
   flex-direction: column;
   font-family: var(--ff-font-sans);

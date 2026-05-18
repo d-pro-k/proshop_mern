@@ -44,11 +44,16 @@
 
   /* Toggle */
   --ff-toggle-off-bg: #CBD5E1;
+  --ff-toggle-knob-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
   /* Table rows */
   --ff-row-head-bg: #F8FAFC;
   --ff-row-border: #F1F5F9;
   --ff-row-hover-bg: rgba(14, 165, 233, 0.05);
+  --ff-row-disabled-bg: #FAFBFC;
+
+  /* Dropdown */
+  --ff-dropdown-item-hover-bg: #F1F5F9;
 
   /* Skeleton */
   --ff-skeleton-bg: #F1F5F9;
@@ -64,8 +69,12 @@
   --ff-role-customer-bg: #F1F5F9;
   --ff-role-customer-text: #475569;
 
-  /* Modal overlay */
+  /* Modal */
   --ff-modal-overlay-bg: rgba(0, 0, 0, 0.4);
+  --ff-modal-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+
+  /* Search (Q8 chrome SearchBox over dark Header bg) */
+  --ff-search-input-focus-bg: rgba(255, 255, 255, 0.16);
 
   /* Danger (destructive actions — Delete button + icon-button hover) */
   --ff-danger-bg: #DC2626;
