@@ -66,3 +66,21 @@ Design choices baked into the page:
 - **Shared icons moved out of admin scope**: `screens/admin/icons.jsx` → `components/icons.jsx`. The file now houses SVGs used by both admin pages and the new storefront page (Search, Eye, Star, Chevron-Left/Right, Check). All 7 consumer screens import from the new path.
 
 Why hybrid D, not the originally-planned full shadcn pipeline — same reasoning as the rest of M4: CRA 3.4.3 + webpack 4 cannot resolve Radix ESM `.mjs` modules without ejecting, and the markup we ship is native HTML, so the M5 / M6 migration to Tailwind + shadcn is a class-swap rather than a rewrite.
+
+### Cart
+
+The cart page `/cart` (and the `/cart/:id?qty=N` add-to-cart redirect from product pages) was rebuilt as a **Stripe Checkout-style order summary**: compact item rows on the left, a sticky Order summary card on the right.
+
+What was rebuilt:
+
+- `screens/storefront/CartScreen.jsx` + `.module.css` — page wrapper, two-column grid (items + summary aside), Redux dispatch for `addToCart` / `removeFromCart`, empty-cart state with a "Browse products" CTA, "Continue shopping" back link.
+- `screens/storefront/CartItem.jsx` + `.module.css` — single cart row: 80 px thumbnail (1:1), product name with line-clamp, unit price, native `<select>` qty picker, line total, `Trash2Icon` remove button. On mobile (≤ 575 px) the row collapses to a 2-row layout (image + name top, qty + total + remove bottom).
+
+Design choices:
+
+- **Layout**: items column on the left (`minmax(0, 1fr)`), summary on the right at a fixed 340 px sticky aside on desktop. The summary card lives at the top of the right column, aligned with the page heading. Below 992 px the columns stack — items first, summary card after.
+- **Order summary card**: white background with the same `--ff-product-card-radius` and shadow as the storefront product cards. Two rows (Subtotal · N items / Total) with a 1 px divider between, then the primary "Proceed to Checkout" button (`--ff-accent`) and a fine-print line about taxes / shipping. No price breakdown beyond subtotal — shipping and taxes are deferred to the checkout flow as in the original spec.
+- **Qty selector**: native `<select>` styled to match `--ff-` tokens (1 px border, custom SVG chevron, accent ring on focus). Range is `1..countInStock`. Avoided custom +/- buttons to keep scope minimal.
+- **Remove button**: small icon button (`Trash2Icon` from `components/icons.jsx`) with a danger-soft hover background (`--ff-danger-soft-bg`) — same pattern as admin delete buttons in Part 3.
+
+The legacy `frontend/src/screens/CartScreen.js` remains in the tree (no longer imported) until the M4/M5 final cleanup, in case we need to roll back. No backend or Redux changes — `addToCart` / `removeFromCart` actions are reused as-is.
