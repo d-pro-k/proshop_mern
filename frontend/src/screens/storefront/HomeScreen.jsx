@@ -165,6 +165,7 @@ var HomeScreen = function () {
 
       {isSearchMode && (
         <Link to='/' className={s.goBack}>
+          <span aria-hidden='true' className={s.goBackArrow}>←</span>
           Go back
         </Link>
       )}

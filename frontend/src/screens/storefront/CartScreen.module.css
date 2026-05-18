@@ -15,20 +15,28 @@
 }
 
 .backLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
   color: var(--ff-muted);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
   align-self: flex-start;
   transition: color 120ms ease;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 1px;
+}
+.backArrow {
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 120ms ease;
 }
 .backLink:hover {
   color: var(--ff-fg);
   text-decoration: none;
-  border-bottom-color: var(--ff-fg);
+}
+.backLink:hover .backArrow {
+  transform: translateX(-3px);
 }
 .backLink:focus-visible {
   outline: none;

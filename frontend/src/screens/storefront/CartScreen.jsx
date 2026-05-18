@@ -53,7 +53,10 @@ var CartScreen = function () {
   if (isEmpty) {
     return (
       <main className={s.page}>
-        <Link to='/' className={s.backLink}>Continue shopping</Link>
+        <Link to='/' className={s.backLink}>
+          <span aria-hidden='true' className={s.backArrow}>←</span>
+          Continue shopping
+        </Link>
 
         <header className={s.sectionHeader}>
           <h1 className={s.title}>Shopping cart</h1>
@@ -70,7 +73,10 @@ var CartScreen = function () {
 
   return (
     <main className={s.page}>
-      <Link to='/' className={s.backLink}>Continue shopping</Link>
+      <Link to='/' className={s.backLink}>
+        <span aria-hidden='true' className={s.backArrow}>←</span>
+        Continue shopping
+      </Link>
 
       <div className={s.layout}>
         <section className={s.items} aria-label='Cart items'>

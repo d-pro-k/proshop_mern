@@ -1,0 +1,601 @@
+/* ProductScreen — storefront-comfortable product details page.
+ * 2-column hero (image left, meta right) → stacks at ≤767px.
+ * Reviews section below: list + customer review form.
+ */
+
+.page {
+  max-width: var(--ff-storefront-max-width);
+  margin: 0 auto;
+  padding: var(--ff-storefront-section-gap) 0 var(--ff-storefront-block-gap);
+  font-family: var(--ff-font-sans);
+  color: var(--ff-fg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ff-storefront-section-gap);
+}
+
+/* Back link — same pattern as CartScreen. */
+.backLink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--ff-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  align-self: flex-start;
+  transition: color 120ms ease;
+}
+.backArrow {
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 120ms ease;
+}
+.backLink:hover {
+  color: var(--ff-fg);
+  text-decoration: none;
+}
+.backLink:hover .backArrow {
+  transform: translateX(-3px);
+}
+.backLink:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--ff-fg);
+}
+
+/* === Hero === */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.heroImageWrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-product-card-radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.heroImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.heroMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--ff-hero-h1-size);
+  font-weight: 600;
+  color: var(--ff-fg);
+  line-height: 1.15;
+  margin: 0 0 0 -4px;
+  padding: 0;
+}
+
+.ratingRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ff-muted);
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+.starActive {
+  color: var(--ff-star-active);
+  display: inline-flex;
+}
+.starEmpty {
+  color: var(--ff-star-inactive);
+  display: inline-flex;
+}
+
+.reviewCount {
+  font-variant-numeric: tabular-nums;
+}
+
+.price {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--ff-fg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.description {
+  font-size: 15px;
+  color: var(--ff-fg);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  opacity: 0.85;
+}
+
+.stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+.stockDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.stockIn {
+  background: var(--ff-status-enabled-bg);
+  color: var(--ff-status-enabled-text);
+}
+.stockIn .stockDot {
+  background: var(--ff-status-enabled-text);
+}
+.stockOut {
+  background: var(--ff-status-disabled-bg);
+  color: var(--ff-status-disabled-text);
+}
+.stockOut .stockDot {
+  background: var(--ff-status-disabled-text);
+  opacity: 0.6;
+}
+
+.qtyRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.qtyLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ff-muted);
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.qtySelect {
+  width: 96px;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid var(--ff-border);
+  border-radius: 6px;
+  background: var(--ff-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+  appearance: none;
+  font-size: 14px;
+  font-family: var(--ff-font-sans);
+  color: var(--ff-fg);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.qtySelect:hover {
+  border-color: var(--ff-muted);
+}
+.qtySelect:focus {
+  outline: none;
+  border-color: var(--ff-accent);
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+
+.addToCart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: var(--ff-accent);
+  color: var(--ff-bg);
+  border: 1px solid var(--ff-accent);
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 120ms ease, border-color 120ms ease;
+  font-family: var(--ff-font-sans);
+  min-width: 200px;
+  align-self: flex-start;
+}
+.addToCart:hover:not(:disabled) {
+  background: var(--ff-accent-hover);
+  border-color: var(--ff-accent-hover);
+}
+.addToCart:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+.addToCart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === Reviews section === */
+.reviewsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reviewsHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+}
+
+.reviewsTitle {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ff-fg);
+  line-height: 1.2;
+  /* -2px compensates for uppercase R left-side-bearing at this font size
+   * (same trick as `.title` h1 but proportionally smaller since h2 = 28px vs h1 = 48px). */
+  margin: 0 0 0 -2px;
+  padding: 0;
+}
+
+.reviewsCount {
+  font-size: 14px;
+  color: var(--ff-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.noReviews {
+  font-size: 14px;
+  color: var(--ff-muted);
+  padding: 24px 0;
+  margin: 0;
+}
+
+.reviewsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.reviewItem {
+  padding: 20px 0;
+  border-top: 1px solid var(--ff-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reviewItem:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.reviewItemHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reviewName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ff-fg);
+}
+
+.reviewDate {
+  font-size: 13px;
+  color: var(--ff-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.reviewRating {
+  display: inline-flex;
+  align-items: center;
+}
+
+.reviewComment {
+  font-size: 14px;
+  color: var(--ff-fg);
+  line-height: 1.6;
+  margin: 4px 0 0;
+  padding: 0;
+  opacity: 0.9;
+}
+
+/* === Review form === */
+.reviewForm {
+  margin-top: 24px;
+  padding: 24px;
+  background: var(--ff-row-head-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-product-card-radius);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reviewFormTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ff-fg);
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.formSuccess {
+  padding: 10px 14px;
+  background: var(--ff-status-enabled-bg);
+  color: var(--ff-status-enabled-text);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.formError {
+  padding: 10px 14px;
+  background: var(--ff-error-bg);
+  color: var(--ff-error-fg);
+  border: 1px solid var(--ff-error-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ff-fg);
+}
+
+.formSelect {
+  width: 100%;
+  max-width: 240px;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid var(--ff-border);
+  border-radius: 6px;
+  background: var(--ff-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+  appearance: none;
+  font-size: 14px;
+  font-family: var(--ff-font-sans);
+  color: var(--ff-fg);
+  cursor: pointer;
+}
+.formSelect:focus {
+  outline: none;
+  border-color: var(--ff-accent);
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+
+.formTextarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--ff-border);
+  border-radius: 6px;
+  background: var(--ff-bg);
+  font-size: 14px;
+  font-family: var(--ff-font-sans);
+  color: var(--ff-fg);
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 96px;
+}
+.formTextarea:focus {
+  outline: none;
+  border-color: var(--ff-accent);
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+
+.submitBtn {
+  align-self: flex-start;
+  padding: 10px 20px;
+  background: var(--ff-accent);
+  color: var(--ff-bg);
+  border: 1px solid var(--ff-accent);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+  font-family: var(--ff-font-sans);
+}
+.submitBtn:hover:not(:disabled) {
+  background: var(--ff-accent-hover);
+  border-color: var(--ff-accent-hover);
+}
+.submitBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.signInPrompt {
+  font-size: 14px;
+  color: var(--ff-muted);
+  padding: 12px 0;
+}
+.signInPrompt a {
+  color: var(--ff-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.signInPrompt a:hover {
+  text-decoration: underline;
+}
+
+/* === Skeleton / Error === */
+.skeletonHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.skeletonImage {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--ff-skeleton-bg);
+  border-radius: var(--ff-product-card-radius);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeletonMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeletonLine {
+  height: 16px;
+  background: var(--ff-skeleton-bg);
+  border-radius: 4px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeletonLineTitle { height: 40px; width: 80%; }
+.skeletonLineShort { width: 50%; }
+.skeletonLineMid { width: 30%; height: 28px; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+.errorAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--ff-error-bg);
+  border: 1px solid var(--ff-error-border);
+  color: var(--ff-error-fg);
+  border-radius: 8px;
+  padding: 20px;
+}
+.errorIcon { flex-shrink: 0; margin-top: 2px; }
+.errorBody { flex: 1; }
+.errorTitle { font-weight: 600; font-size: 16px; }
+.errorDesc { font-size: 14px; margin-top: 4px; opacity: 0.85; }
+.errorRetry {
+  background: none;
+  border: none;
+  color: var(--ff-error-fg);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+  padding: 0;
+}
+
+/* === Responsive === */
+@media (max-width: 1199px) {
+  .page {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 991px) {
+  .hero {
+    gap: 32px;
+  }
+  .skeletonHero {
+    gap: 32px;
+  }
+  .title {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .skeletonHero {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .heroImageWrap {
+    padding: 24px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .skeletonImage {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .reviewItemHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 575px) {
+  .page {
+    padding-left: 16px;
+    padding-right: 16px;
+    gap: 32px;
+  }
+  .title {
+    font-size: var(--ff-hero-h1-size-mobile);
+  }
+  .price {
+    font-size: 28px;
+  }
+  .reviewForm {
+    padding: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonImage, .skeletonLine {
+    animation: none;
+    opacity: 0.7;
+  }
+}

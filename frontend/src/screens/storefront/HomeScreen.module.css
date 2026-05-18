@@ -14,11 +14,11 @@
   gap: var(--ff-storefront-section-gap);
 }
 
-/* Go back link (search mode) — plain text with hover underline.
- * No prefix arrow — guarantees perfect left-edge alignment with h1 and resultCount.
- */
+/* Go back link (search mode) — Unicode ← arrow + text. */
 .goBack {
-  display: inline-block;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
   color: var(--ff-muted);
   text-decoration: none;
   font-size: 14px;
@@ -27,12 +27,19 @@
   padding: 0;
   align-self: flex-start;
   transition: color 120ms ease;
-  border-bottom: 1px solid transparent;
+}
+.goBackArrow {
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 120ms ease;
 }
 .goBack:hover {
   color: var(--ff-fg);
   text-decoration: none;
-  border-bottom-color: var(--ff-fg);
+}
+.goBack:hover .goBackArrow {
+  transform: translateX(-3px);
 }
 .goBack:focus-visible {
   outline: none;

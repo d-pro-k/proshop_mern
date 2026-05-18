@@ -71,6 +71,12 @@ Why hybrid D, not the originally-planned full shadcn pipeline — same reasoning
 
 The cart page `/cart` (and the `/cart/:id?qty=N` add-to-cart redirect from product pages) was rebuilt as a **Stripe Checkout-style order summary**: compact item rows on the left, a sticky Order summary card on the right.
 
+Before / after:
+
+| Page | Before (Bootstrap) | After (hybrid D) |
+|------|--------------------|-------------------|
+| Cart `/cart` | ![Cart before](screenshots/before/cart.png) | ![Cart after](screenshots/redesign/cart.png) |
+
 What was rebuilt:
 
 - `screens/storefront/CartScreen.jsx` + `.module.css` — page wrapper, two-column grid (items + summary aside), Redux dispatch for `addToCart` / `removeFromCart`, empty-cart state with a "Browse products" CTA, "Continue shopping" back link.
@@ -84,3 +90,29 @@ Design choices:
 - **Remove button**: small icon button (`Trash2Icon` from `components/icons.jsx`) with a danger-soft hover background (`--ff-danger-soft-bg`) — same pattern as admin delete buttons in Part 3.
 
 The legacy `frontend/src/screens/CartScreen.js` remains in the tree (no longer imported) until the M4/M5 final cleanup, in case we need to roll back. No backend or Redux changes — `addToCart` / `removeFromCart` actions are reused as-is.
+
+### Product details
+
+The product details page `/product/:id` was rebuilt with a **2-column hero** (image left, meta right) and a reviews section below.
+
+Before / after:
+
+| Page | Before (Bootstrap) | After (hybrid D) |
+|------|--------------------|-------------------|
+| Product `/product/:id` | ![Product before](screenshots/before/product.png) | ![Product after](screenshots/redesign/product.png) |
+
+What was rebuilt:
+
+- `screens/storefront/ProductScreen.jsx` + `.module.css` — page wrapper, Redux dispatch (`listProductDetails`, `createProductReview`), three branches (loading skeleton / error / data), inline `StarRow` helper that reuses the inline SVG `StarIcon` from `components/icons.jsx`.
+- Hero section — left column: 1:1 image card with `object-fit: contain` so the product photo's own white background sits cleanly inside the rounded card; right column: h1 name, star rating + review count, large 32 px price, description copy, a pill-shaped in-stock / out-of-stock indicator, qty `<select>`, and a primary `--ff-accent` "Add to cart" button.
+- Reviews section — header with title + reviews count, list of review items (name + relative date, star row, comment), and an inline "Write a customer review" form in a subtle gray card. The form has a rating `<select>` (1–5 with labels Poor / Fair / Good / Very good / Excellent), a comment textarea, and a Submit button; submitting disables itself while the action is in flight. When the user is not logged in, the form is replaced by a "Please sign in to write a review" prompt.
+
+Bug fix included with this redesign:
+
+- After a successful review submission the page now refetches product details automatically (`dispatch(listProductDetails)` inside the `useEffect` success branch) so the new review appears in the list without a page reload. The legacy `ProductScreen.js` had the same code path but did not refetch — submitting a review required a manual refresh to see it.
+
+Cross-page polish in the same commit:
+
+- All three storefront back links (`Home` search mode, `Cart`, `Product`) now have a Unicode `←` arrow prefix with a subtle hover-translate-x animation, replacing the earlier plain-text variants. This gives clear "back affordance" without pulling in another SVG icon.
+
+The legacy `frontend/src/screens/ProductScreen.js` remains in the tree (no longer imported) until M4/M5 final cleanup. No backend / Redux action changes — `listProductDetails`, `createProductReview`, and the `PRODUCT_CREATE_REVIEW_RESET` constant are reused.
