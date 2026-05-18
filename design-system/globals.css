@@ -1,16 +1,22 @@
-/* Runtime mirror of design-system/globals.css (single source of truth lives
- * in `design-system/` at repo root; this file exists because CRA 3.4.3 webpack
- * ModuleScopePlugin blocks @import from outside frontend/src/).
+/* design-system/globals.css
  *
- * SYNC RULE: when you edit `design-system/globals.css`, also update this file.
- * The selection-mode pattern (one section at a time) makes the manual sync
- * trivial — three single-line edits across globals.css, tokens.json, and
- * this file. See assignments/M4/plan/ext-c-selection-mode.md for the rule.
+ * Canonical CSS variables for the ProShop M4 design system.
+ * Mirror of: frontend/src/styles/design-tokens.css (runtime copy).
  *
- * Prefix --ff- chosen for safe coexistence with Bootstrap and future Tailwind
- * migration (rename to --background/--foreground via find-replace in M5/M6).
- * Direct hex/rgba values (not hsl(var()) composition) — CRA 3.4.3 has resolve
- * issues with composition (see assignments/M4/plan/part2-hybrid-d-decision.md).
+ * WHY TWO FILES: CRA 3.4.3 webpack ModuleScopePlugin blocks @import from
+ * paths outside frontend/src/. So this file is the conceptual source-of-truth
+ * (paired with design-system/tokens.json for machine readability), and
+ * design-tokens.css is a manual mirror used at runtime.
+ *
+ * SYNC RULE: when you edit any token here, also edit the matching line in
+ * frontend/src/styles/design-tokens.css. The selection-mode pattern
+ * (see assignments/M4/plan/ext-c-selection-mode.md) describes how this stays
+ * trivial — you only ever touch ONE section, not the whole file, so the
+ * manual sync is two single-line edits, not a regeneration.
+ *
+ * After M5/M6 webpack migration this file can become the only CSS source
+ * (frontend/src/styles/design-tokens.css will be either symlink, deleted,
+ * or auto-generated from tokens.json).
  */
 
 :root {
@@ -99,4 +105,3 @@
   /* Accent hover (used in Q8 SearchBox button + Part 3.2 ProductList — was inline hex #0284C7) */
   --ff-accent-hover: #0284C7;
 }
-

@@ -1,5 +1,12 @@
 # DESIGN.md
 
+> **Source of truth:** machine-readable tokens in [`design-system/tokens.json`](design-system/tokens.json);
+> canonical CSS variables in [`design-system/globals.css`](design-system/globals.css);
+> runtime mirror at [`frontend/src/styles/design-tokens.css`](frontend/src/styles/design-tokens.css).
+> This document is the human-readable narrative — keep it in sync with the three files above
+> when tokens change. See [`assignments/M4/plan/ext-c-selection-mode.md`](assignments/M4/plan/ext-c-selection-mode.md)
+> for the selection-mode pattern (one section at a time, not the whole file).
+
 > Design system: Stripe-inspired (Slate + Smoke), light theme, dual density.
 > Aesthetic: minimal-tech — admin-dense for back-office, storefront-comfortable for shopper-facing pages. Both share tokens.
 > Reference: Stripe Dashboard + Checkout (captured in `assignments/M4/reference/`).
