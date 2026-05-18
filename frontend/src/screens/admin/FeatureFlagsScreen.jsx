@@ -204,7 +204,7 @@ var FeatureFlagsScreen = function () {
     return (
       <div className={s.empty}>
         <div className={s.emptyIconWrap}>
-          <span style={{ opacity: 0.3 }}><FlagIcon size={32} /></span>
+          <span className={s.emptyIcon}><FlagIcon size={32} /></span>
         </div>
         <div className={s.emptyTitle}>
           No feature flags found

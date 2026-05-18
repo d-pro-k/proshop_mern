@@ -161,7 +161,7 @@
   background: var(--ff-accent);
   color: var(--ff-bg);
   border: 1px solid var(--ff-accent);
-  border-radius: 8px;
+  border-radius: var(--ff-radius-lg);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -214,7 +214,7 @@
   padding: 10px 20px;
   background: var(--ff-accent);
   color: var(--ff-bg);
-  border-radius: 6px;
+  border-radius: var(--ff-radius-md);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;

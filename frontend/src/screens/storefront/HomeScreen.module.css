@@ -112,7 +112,7 @@
 .skeletonLine {
   height: 14px;
   background: var(--ff-skeleton-bg);
-  border-radius: 4px;
+  border-radius: var(--ff-radius-sm);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -132,7 +132,7 @@
   background: var(--ff-error-bg);
   border: 1px solid var(--ff-error-border);
   color: var(--ff-error-fg);
-  border-radius: 8px;
+  border-radius: var(--ff-radius-lg);
   padding: 20px;
 }
 .errorIcon { flex-shrink: 0; margin-top: 2px; }
@@ -188,7 +188,7 @@
   padding: 10px 20px;
   background: var(--ff-accent);
   color: var(--ff-bg);
-  border-radius: 6px;
+  border-radius: var(--ff-radius-md);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;

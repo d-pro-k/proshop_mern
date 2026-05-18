@@ -83,6 +83,12 @@
   --ff-danger-soft-bg: #FEF2F2;
   --ff-danger-soft-border: #FECACA;
 
+  /* Radius / shapes — named numeric scale (50% stays inline for full-circle; 2px stays inline as one-off; --ff-product-card-radius below is storefront-specific 12px) */
+  --ff-radius-sm: 4px;
+  --ff-radius-md: 6px;
+  --ff-radius-lg: 8px;
+  --ff-radius-pill: 999px;
+
   /* === storefront-comfortable (Часть 4 — Home + foundation для будущих storefront-страниц) === */
   --ff-storefront-max-width: 1200px;
   --ff-storefront-section-gap: 48px;

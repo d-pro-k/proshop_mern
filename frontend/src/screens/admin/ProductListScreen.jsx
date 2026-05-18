@@ -234,7 +234,7 @@ var ProductListScreen = function () {
     return (
       <div className={s.empty}>
         <div className={s.emptyIconWrap}>
-          <span style={{ opacity: 0.3 }}><PackageIcon size={32} /></span>
+          <span className={s.emptyIcon}><PackageIcon size={32} /></span>
         </div>
         <div className={s.emptyTitle}>
           {isFilteredEmpty ? 'No products match your search' : 'No products yet'}

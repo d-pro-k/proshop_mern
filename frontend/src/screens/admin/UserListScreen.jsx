@@ -238,7 +238,7 @@ var UserListScreen = function () {
     return (
       <div className={s.empty}>
         <div className={s.emptyIconWrap}>
-          <span style={{ opacity: 0.3 }}><UsersIcon size={32} /></span>
+          <span className={s.emptyIcon}><UsersIcon size={32} /></span>
         </div>
         <div className={s.emptyTitle}>
           {isFilteredEmpty ? 'No users match your filters' : 'No users yet'}

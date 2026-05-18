@@ -204,7 +204,7 @@ var OrderListScreen = function () {
     return (
       <div className={s.empty}>
         <div className={s.emptyIconWrap}>
-          <span style={{ opacity: 0.3 }}><ShoppingBagIcon size={32} /></span>
+          <span className={s.emptyIcon}><ShoppingBagIcon size={32} /></span>
         </div>
         <div className={s.emptyTitle}>
           {isFilteredEmpty ? 'No orders match your filters' : 'No orders yet'}

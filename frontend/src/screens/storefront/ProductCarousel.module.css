@@ -194,7 +194,7 @@
 .dotActive {
   background: var(--ff-carousel-dot-bg-active);
   width: 24px;
-  border-radius: 4px;
+  border-radius: var(--ff-radius-sm);
 }
 
 /* Tablet ≤768px — column layout, smaller arrows */
@@ -232,7 +232,7 @@
 @media (max-width: 575px) {
   .carousel {
     min-height: 280px;
-    border-radius: 8px;
+    border-radius: var(--ff-radius-lg);
   }
   .slide {
     padding: 20px 48px 36px;
