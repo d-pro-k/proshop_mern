@@ -116,3 +116,38 @@ Cross-page polish in the same commit:
 - All three storefront back links (`Home` search mode, `Cart`, `Product`) now have a Unicode `←` arrow prefix with a subtle hover-translate-x animation, replacing the earlier plain-text variants. This gives clear "back affordance" without pulling in another SVG icon.
 
 The legacy `frontend/src/screens/ProductScreen.js` remains in the tree (no longer imported) until M4/M5 final cleanup. No backend / Redux action changes — `listProductDetails`, `createProductReview`, and the `PRODUCT_CREATE_REVIEW_RESET` constant are reused.
+
+## Design system (optional extension C)
+
+`DESIGN.md` is the human-readable narrative. Alongside it, three files form the machine-readable layer:
+
+- `design-system/tokens.json` — the single source of truth. ~66 token entries grouped by category (`color.foundations`, `color.sidebar`, `color.accent`, `color.status`, …, `radius`, `typography`, `storefront`). Consumed by tooling (the `ui-reviewer` agent below; future migration scripts).
+- `design-system/globals.css` — the canonical CSS form of the same tokens, in a `:root` block with section comments.
+- `frontend/src/styles/design-tokens.css` — runtime mirror of `globals.css`. It exists because CRA 3.4.3 webpack `ModuleScopePlugin` blocks `@import` from paths outside `frontend/src/`. The two CSS files are kept byte-identical in their `:root` blocks; this is verified after every change with a one-line `diff`.
+
+Editing a token is a three-file atomic edit (the "selection-mode" pattern): change the matching line in `tokens.json`, `globals.css`, and `design-tokens.css` together — nothing else. `design-system/README.md` documents the rule for cold-start contributors; the `homework/M4/selection-mode-demo.md` file walks through a worked example (changing `--ff-accent` from sky-500 to emerald-500 and reverting it in the next commit), with before/after screenshots at `screenshots/dashboard/`.
+
+After M5/M6 migrates to Tailwind + a modern webpack, the runtime mirror file disappears: `design-system/globals.css` becomes the only CSS source, optionally generated from `tokens.json` by a build script.
+
+## UI reviewer agent (optional extension A)
+
+`.claude/agents/ui-reviewer.md` is a project-level Claude Code subagent running on Opus. It audits all UI code against `DESIGN.md`, `design-system/tokens.json`, `design-system/globals.css`, and `frontend/src/styles/design-tokens.css`. Two modes:
+
+- **`MODE=review`** — read-only. Walks `frontend/src/screens/admin/`, `frontend/src/screens/storefront/`, `components/icons.jsx`, and the `Header / Footer / SearchBox .module.css` chrome modules. Emits structured findings grouped by severity (Critical / Major / Minor), each with a file:line ref, a reason citing the violated rule, and a recommendation.
+- **`MODE=enforce`** — write. Applies fixes by editing files. When adding a new token it honours the tri-file sync rule above. For each change it emits a `Before / After / Why` block so the diff is reviewable line by line.
+
+The system prompt and the audit report it produces are deliberately **plan-agnostic** — pure design-system rules and file paths, no mention of the project's milestone labels or this homework's structure. The agent works the same way after this homework concludes; the audit it produces is a stand-alone artefact that any future contributor can read cold.
+
+`homework/M4/ui-review.md` is the initial audit run at the end of the homework, scoped to the redesigned admin + storefront screens plus the shared chrome modules. It found 10 Critical, 15 Major, and 6 Minor issues (mostly hardcoded hex/rgba literals, off-grid spacing, and inline `style={…}` attributes that should live in CSS Modules).
+
+The findings were applied in three tiered enforce passes:
+
+| Pass | What | Notable additions |
+|------|------|-------------------|
+| Critical | Hex / rgba literals → `var(--ff-*)` tokens across SearchBox, Header dropdown, modal panels, toggle knob, ProductList hover, FeatureFlags disabled-row | Five new semantic tokens: `--ff-row-disabled-bg`, `--ff-dropdown-item-hover-bg`, `--ff-modal-shadow`, `--ff-toggle-knob-shadow`, `--ff-search-input-focus-bg` |
+| Major | Off-grid spacing normalised to the 8-px half-step grid (7→6, 14→12, 9→8, 5→4, 56→48, …) and four inline `style={…}` empty-state attributes extracted into shared `.emptyIconWrap` / `.emptyTitle` / `.emptyDesc` / `.errorAlertWithMargin` classes | — |
+| Minor | Empty-state icon opacity moved to a shared `.emptyIcon` class; `border-radius` numeric scale tokenised; a stale header comment in `ProductListScreen.module.css` corrected; SearchBox placeholder colour raised from `rgba(255,255,255,0.45)` to `rgba(255,255,255,0.72)` for better contrast over the Slate header | Four radius tokens: `--ff-radius-sm` (4 px), `--ff-radius-md` (6 px), `--ff-radius-lg` (8 px), `--ff-radius-pill` (999 px). The existing `--ff-product-card-radius` (12 px, storefront-specific) is preserved |
+
+Each pass landed as an atomic commit with build-clean verification and a visual smoke check on `/admin/feature-flags` and `/`. Two Minor findings were intentionally skipped per the audit's own no-action guidance (runtime-computed skeleton opacity; Bootstrap utility classes in the chrome `Header.js / Footer.js`, which fall outside the audit's strict scope — chrome rewrite is the natural place for them).
+
+The agent stays in the repo and is dispatched automatically by Claude Code in future sessions (`subagent_type=ui-reviewer`). Future major UI changes are expected to run it again — the optional B (Pixel-Perfect verify) extension below builds on the same artefacts.
