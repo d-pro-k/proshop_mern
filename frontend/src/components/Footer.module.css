@@ -1,0 +1,16 @@
+/* Q8 chrome harmonization — Footer light reskin.
+ * Bg: Slate (matches Header + admin sidebar). Font: Geist. Text muted.
+ * Structure (one-row centered Copyright) NOT touched.
+ */
+
+.footer {
+  background: var(--ff-sidebar-bg);
+  color: var(--ff-sidebar-text);
+  font-family: var(--ff-font-sans);
+  font-size: 13px;
+  margin-top: 64px;
+}
+
+.footer :global(.text-center) {
+  color: var(--ff-sidebar-text);
+}

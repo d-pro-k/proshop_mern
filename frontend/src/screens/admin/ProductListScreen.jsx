@@ -25,7 +25,7 @@ import {
   Trash2Icon,
   AlertTriangleIcon,
   PlusIcon,
-} from './icons'
+} from '../../components/icons'
 
 function initials(name) {
   if (!name) return '?'

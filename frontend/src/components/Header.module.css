@@ -1,0 +1,100 @@
+/* Q8 chrome harmonization — Header light reskin.
+ * Bg: Slate (matches admin sidebar). Font: Geist. Text colors via --ff-sidebar-*.
+ * NavDropdown caret + collapse toggler inherit from Bootstrap navbar-dark
+ * variant (kept unchanged); only colors are overridden via :global selectors.
+ *
+ * Structure / layout / dropdown markup — NOT touched.
+ */
+
+.navbar {
+  background: var(--ff-sidebar-bg) !important;
+  font-family: var(--ff-font-sans);
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+/* Brand */
+.navbar :global(.navbar-brand) {
+  font-family: var(--ff-font-sans);
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--ff-sidebar-text-strong);
+  letter-spacing: -0.01em;
+}
+.navbar :global(.navbar-brand:hover),
+.navbar :global(.navbar-brand:focus) {
+  color: var(--ff-sidebar-text-strong);
+  text-decoration: none;
+}
+
+/* Nav links (Cart, Sign In) */
+.navbar :global(.nav-link) {
+  color: var(--ff-sidebar-text) !important;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 14px !important;
+  border-radius: 6px;
+  transition: background 120ms ease, color 120ms ease;
+}
+.navbar :global(.nav-link:hover),
+.navbar :global(.nav-link:focus) {
+  color: var(--ff-sidebar-text-strong) !important;
+  background: var(--ff-sidebar-hover-bg);
+}
+
+/* NavDropdown title (User, Admin) */
+.navbar :global(.dropdown-toggle.nav-link) {
+  color: var(--ff-sidebar-text) !important;
+}
+
+/* Dropdown menu (popover) — global selectors because react-bootstrap NavDropdown
+ * may position the menu outside the navbar DOM ancestor, so `.navbar :global(.dropdown-menu)`
+ * won't always match. Header is the only consumer of NavDropdown in this project,
+ * so a global override is safe.
+ */
+:global(.dropdown-menu) {
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: var(--ff-card-shadow-hover);
+  font-family: var(--ff-font-sans);
+  margin-top: 6px;
+}
+:global(.dropdown-item) {
+  color: var(--ff-fg) !important;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background 120ms ease;
+  background: transparent !important;
+}
+/* Reset Bootstrap's sticky :active / .active / :focus states — they keep
+ * the item visually highlighted after the mouse leaves, causing two
+ * simultaneously-lit items when moving between dropdown entries. */
+:global(.dropdown-item:active),
+:global(.dropdown-item.active),
+:global(.dropdown-item:focus) {
+  background: transparent !important;
+  color: var(--ff-fg) !important;
+  outline: none;
+}
+
+/* Real highlight states — :hover (mouse over) and :focus-visible (keyboard Tab nav).
+ * slate-100 — darker than --ff-row-head-bg (slate-50, was too faint) and
+ * intentionally NOT accent-blue (reserved for sidebar active-page indicator). */
+:global(.dropdown-item:hover),
+:global(.dropdown-item:focus-visible) {
+  background: #F1F5F9 !important;
+  color: var(--ff-fg) !important;
+  outline: none;
+}
+
+/* Collapse toggler (mobile hamburger) — keep navbar-dark default icon */
+.navbar :global(.navbar-toggler) {
+  border-color: var(--ff-sidebar-divider);
+}
+.navbar :global(.navbar-toggler:focus-visible) {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}

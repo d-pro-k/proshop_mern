@@ -1,0 +1,150 @@
+/* ProductCard — storefront-comfortable card pattern.
+ * 1:1 aspect photo (Q3), inline SVG stars (Q7), 24px body padding,
+ * --ff-product-card-radius border, --ff-card-shadow.
+ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-product-card-radius);
+  box-shadow: var(--ff-card-shadow);
+  overflow: hidden;
+  transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
+  font-family: var(--ff-font-sans);
+}
+
+.card:hover {
+  box-shadow: var(--ff-card-shadow-hover);
+  transform: translateY(-2px);
+  border-color: var(--ff-accent-ring);
+}
+
+.imageLink {
+  display: block;
+  text-decoration: none;
+  outline: none;
+}
+.imageLink:focus-visible {
+  outline: none;
+}
+.imageLink:focus-visible .imageWrap {
+  box-shadow: inset 0 0 0 2px var(--ff-accent);
+}
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--ff-product-image-aspect);
+  background: var(--ff-row-head-bg);
+  overflow: hidden;
+  transition: box-shadow 120ms ease;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--ff-card-padding-storefront);
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ff-fg);
+  margin: 0;
+  padding: 0;
+  /* Override Bootstrap theme uppercase on h-elements */
+  text-transform: none;
+  /* 2-line clamp to keep cards same height */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.4em * 2);
+}
+
+.titleLink {
+  color: inherit;
+  text-decoration: none;
+}
+.titleLink:hover {
+  color: var(--ff-accent);
+  text-decoration: none;
+}
+.titleLink:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-decoration-color: var(--ff-accent);
+  text-underline-offset: 4px;
+}
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+.starActive {
+  color: var(--ff-star-active);
+  display: inline-flex;
+}
+
+.starEmpty {
+  color: var(--ff-star-inactive);
+  display: inline-flex;
+}
+
+.reviewCount {
+  color: var(--ff-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ff-fg);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+/* Phone (<576px) — tighter padding */
+@media (max-width: 575px) {
+  .body {
+    padding: 16px;
+  }
+  .title {
+    font-size: 15px;
+  }
+  .price {
+    font-size: 18px;
+  }
+}
+
+/* Reduced-motion — disable hover lift */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+}

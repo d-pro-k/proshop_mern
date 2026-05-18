@@ -18,7 +18,7 @@ The page therefore uses **CSS Modules + design tokens + native HTML**:
 
 ### Admin (Users, Products, Orders)
 
-Three admin list pages — `/admin/userlist`, `/admin/productlist`, `/admin/orderlist` — were rebuilt on top of the same hybrid-D foundation as the Feature Flags Dashboard: native HTML tables, CSS Modules, the shared `--ff-` design tokens, inline SVG icons from `screens/admin/icons.jsx`, and the same slate-dark sidebar plus topbar breadcrumb.
+Three admin list pages — `/admin/userlist`, `/admin/productlist`, `/admin/orderlist` — were rebuilt on top of the same hybrid-D foundation as the Feature Flags Dashboard: native HTML tables, CSS Modules, the shared `--ff-` design tokens, inline SVG icons from `components/icons.jsx`, and the same slate-dark sidebar plus topbar breadcrumb.
 
 Before / after pairs:
 
@@ -39,3 +39,30 @@ What changed across all three:
 Why hybrid D — same reasoning as the Feature Flags Dashboard above (no Tailwind / shadcn on CRA 3.4.3 + webpack 4). The markup is native HTML, so the migration to Tailwind utility classes in M5 / M6 is a class swap, not a rewrite.
 
 Component decisions for the admin pages mirror the Dashboard: built from scratch on native HTML primitives with `--ff-` design tokens — no third-party UI library used.
+
+### Home
+
+The storefront entry point `/` (plus `/page/:n`, `/search/:keyword`, `/search/:keyword/page/:n`) was rewritten as the first **storefront-comfortable** page using the same hybrid D stack. Files live under a new `frontend/src/screens/storefront/` directory that mirrors the `admin/` pattern; future storefront page redesigns (Cart, Product details, etc.) plug into the same foundation.
+
+Before / after:
+
+| Page | Before (Bootstrap) | After (hybrid D) |
+|------|--------------------|-------------------|
+| Home `/` | ![Home before](screenshots/before/home.png) | ![Home after](screenshots/redesign/home.png) |
+
+What was rebuilt:
+
+- `screens/storefront/HomeScreen.jsx` + `.module.css` — page wrapper, Redux dispatch, route-mode switch (default `/` vs search `/search/:kw`), four wired states (loading skeleton / error / empty / data) plus a `?state=…` URL override for demos.
+- `screens/storefront/ProductCard.jsx` + `.module.css` — 1:1 aspect-ratio photo (`aspect-ratio: 1 / 1; object-fit: cover`) with inline SVG `StarIcon` (no FontAwesome dependency), 24 px body padding, subtle hover lift.
+- `screens/storefront/ProductCarousel.jsx` + `.module.css` — native HTML slider on Slate-dark band, manual nav only (autorotate off — accessibility + `prefers-reduced-motion`), keyboard control (←/→/Home/End/Esc), three dot indicators, white 1:1 image card to keep the photo's own white background contained inside its boundary.
+
+Design choices baked into the page:
+
+- **Storefront-comfortable density** (per `DESIGN.md`): centered max-width 1200 px, 48 px section gap, h1 48 px Geist hero heading. Distinct from the admin-dense pages above.
+- **Grid layout**: CSS Grid `repeat(auto-fill, minmax(240px, 1fr))` — a single rule that fluidly reflows from one column on mobile up to four columns on desktop, with the container max-width as the natural cap. No media queries needed for the grid itself.
+- **Search-mode (`/search/:kw`)**: Carousel hidden, h1 reflects `Results for "{keyword}"`, an `aria-live="polite"` count line ("N products found") announces dynamic filter updates to screen readers, plus a plain "Go back" text link to return to the default view.
+- **Rating display**: inline SVG `StarIcon` with `variant="full" | "half" | "empty"` per position, driven by the same threshold logic as the legacy `components/Rating.js`. The legacy component is untouched (still used by `ProductScreen` and reviews) — clean removal of FontAwesome is M5/M6 cleanup.
+- **Chrome harmonization** (light reskin, no structural change): `components/Header.js`, `Footer.js`, `SearchBox.js` switched from the Bootstrap dark variant to the same Slate `--ff-sidebar-bg` background and Geist font that the admin sidebar uses; the Search button moved from `outline-success` (green) to `--ff-accent` (blue). Layout, dropdowns, and routes are unchanged — the Header redesign as a full surgery is deferred to M5 when the remaining storefront pages migrate.
+- **Shared icons moved out of admin scope**: `screens/admin/icons.jsx` → `components/icons.jsx`. The file now houses SVGs used by both admin pages and the new storefront page (Search, Eye, Star, Chevron-Left/Right, Check). All 7 consumer screens import from the new path.
+
+Why hybrid D, not the originally-planned full shadcn pipeline — same reasoning as the rest of M4: CRA 3.4.3 + webpack 4 cannot resolve Radix ESM `.mjs` modules without ejecting, and the markup we ship is native HTML, so the M5 / M6 migration to Tailwind + shadcn is a class-swap rather than a rewrite.

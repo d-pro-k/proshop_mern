@@ -64,5 +64,30 @@
   --ff-danger-fg: #991B1B;
   --ff-danger-soft-bg: #FEF2F2;
   --ff-danger-soft-border: #FECACA;
+
+  /* === storefront-comfortable (Часть 4 — Home + foundation для будущих storefront-страниц) === */
+  --ff-storefront-max-width: 1200px;
+  --ff-storefront-section-gap: 48px;
+  --ff-storefront-block-gap: 64px;
+  --ff-card-padding-storefront: 24px;
+  --ff-product-card-radius: 12px;
+  --ff-product-image-aspect: 1 / 1;
+  --ff-hero-h1-size: 48px;
+  --ff-hero-h1-size-mobile: 32px;
+  --ff-hero-padding-y: 32px;
+  --ff-carousel-overlay-bg: rgba(10, 37, 64, 0.55);
+  --ff-carousel-arrow-bg: rgba(255, 255, 255, 0.10);
+  --ff-carousel-arrow-bg-hover: rgba(255, 255, 255, 0.20);
+  --ff-carousel-dot-bg: rgba(255, 255, 255, 0.30);
+  --ff-carousel-dot-bg-active: #FFFFFF;
+  --ff-card-shadow: 0 1px 3px rgba(10, 37, 64, 0.06);
+  --ff-card-shadow-hover: 0 4px 12px rgba(10, 37, 64, 0.10);
+
+  /* Star rating (inline SVG StarIcon in storefront ProductCard) */
+  --ff-star-active: #F59E0B;
+  --ff-star-inactive: #E2E8F0;
+
+  /* Accent hover (used in Q8 SearchBox button + Part 3.2 ProductList — was inline hex #0284C7) */
+  --ff-accent-hover: #0284C7;
 }
 

@@ -16,7 +16,7 @@ import {
   AlertCircleIcon,
   ArrowUpIcon,
   EyeIcon,
-} from './icons'
+} from '../../components/icons'
 
 var VIEW_TABS = ['All', 'Pending', 'Paid', 'Delivered']
 

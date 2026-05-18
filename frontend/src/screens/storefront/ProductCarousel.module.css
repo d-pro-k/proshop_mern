@@ -1,0 +1,262 @@
+/* ProductCarousel — native HTML slider on Slate-dark band.
+ * Manual nav only (no autorotate per Q1), keyboard accessible,
+ * Slate overlay caption matches DESIGN.md (not pure black).
+ */
+
+.carousel {
+  position: relative;
+  width: 100%;
+  background: var(--ff-sidebar-bg);
+  color: var(--ff-sidebar-text-strong);
+  border: none;
+  border-radius: var(--ff-product-card-radius);
+  overflow: hidden;
+  padding: 0;
+  outline: none;
+  font-family: var(--ff-font-sans);
+  min-height: 320px;
+}
+
+.carousel:focus-visible {
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+
+.carouselSkeleton {
+  background: var(--ff-skeleton-bg);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* Slides container */
+.slides {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+}
+
+.slide {
+  display: none;
+  padding: 32px 80px;
+  align-items: center;
+  gap: 32px;
+  min-height: 320px;
+}
+
+.slideActive {
+  display: flex;
+}
+
+.slideLink {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.slideLink:hover,
+.slideLink:focus {
+  color: inherit;
+  text-decoration: none;
+}
+.slideLink:focus-visible .slideTitle {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.slideImageWrap {
+  flex: 0 0 240px;
+  width: 240px;
+  aspect-ratio: 1 / 1;
+  background: var(--ff-bg);
+  border-radius: var(--ff-product-card-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.slideImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.slideCaption {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.slideTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ff-sidebar-text-strong);
+  margin: 0;
+  padding: 0;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  /* Override Bootstrap theme uppercase on h-elements */
+  text-transform: none;
+}
+
+.slidePrice {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--ff-sidebar-text);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Arrows */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ff-carousel-arrow-bg);
+  color: var(--ff-sidebar-text-strong);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 120ms ease;
+  padding: 0;
+  z-index: 2;
+}
+
+.arrow:hover:not(:disabled) {
+  background: var(--ff-carousel-arrow-bg-hover);
+}
+
+.arrow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+
+.arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.arrowPrev { left: 16px; }
+.arrowNext { right: 16px; }
+
+/* Dot indicators */
+.dots {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 2;
+}
+
+.dots li {
+  display: inline-flex;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ff-carousel-dot-bg);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 120ms ease, width 120ms ease;
+}
+
+.dot:hover {
+  background: var(--ff-carousel-dot-bg-active);
+}
+
+.dot:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+
+.dotActive {
+  background: var(--ff-carousel-dot-bg-active);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Tablet ≤768px — column layout, smaller arrows */
+@media (max-width: 768px) {
+  .slide {
+    padding: 24px 56px 40px;
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  .slideLink {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  .slideImageWrap {
+    flex: 0 0 180px;
+    width: 180px;
+  }
+  .slideTitle {
+    font-size: 20px;
+  }
+  .slidePrice {
+    font-size: 18px;
+  }
+  .arrow {
+    width: 36px;
+    height: 36px;
+  }
+  .arrowPrev { left: 12px; }
+  .arrowNext { right: 12px; }
+}
+
+/* Mobile ≤575px */
+@media (max-width: 575px) {
+  .carousel {
+    min-height: 280px;
+    border-radius: 8px;
+  }
+  .slide {
+    padding: 20px 48px 36px;
+    min-height: 280px;
+  }
+  .slideImageWrap {
+    flex: 0 0 140px;
+    width: 140px;
+  }
+  .slideTitle {
+    font-size: 18px;
+  }
+  .arrow {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .carouselSkeleton {
+    animation: none;
+  }
+  .arrow, .dot {
+    transition: none;
+  }
+}

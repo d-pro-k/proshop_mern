@@ -18,7 +18,7 @@ import {
   PencilIcon,
   Trash2Icon,
   AlertTriangleIcon,
-} from './icons'
+} from '../../components/icons'
 
 var VIEW_TABS = ['All', 'Admins', 'Customers']
 

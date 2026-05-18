@@ -17,7 +17,7 @@ import {
   RowsCompactIcon,
   AlertCircleIcon,
   ArrowUpIcon,
-} from './icons'
+} from '../../components/icons'
 
 var VIEW_TABS = ['All', 'Enabled', 'Testing', 'Disabled']
 
