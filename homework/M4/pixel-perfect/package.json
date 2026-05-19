@@ -1,0 +1,16 @@
+{
+  "name": "proshop-pixel-perfect",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pixel-perfect verify pipeline for proshop_mern admin Dashboard — Playwright + Anthropic vision-diff.",
+  "scripts": {
+    "screenshot": "playwright test",
+    "verify": "node verify.js",
+    "all": "npm run screenshot && npm run verify"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

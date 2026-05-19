@@ -1,0 +1,6 @@
+node_modules/
+current-dashboard.png
+verify-report.md
+playwright-report/
+test-results/
+.env
