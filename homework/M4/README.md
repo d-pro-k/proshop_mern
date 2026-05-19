@@ -151,3 +151,32 @@ The findings were applied in three tiered enforce passes:
 Each pass landed as an atomic commit with build-clean verification and a visual smoke check on `/admin/feature-flags` and `/`. Two Minor findings were intentionally skipped per the audit's own no-action guidance (runtime-computed skeleton opacity; Bootstrap utility classes in the chrome `Header.js / Footer.js`, which fall outside the audit's strict scope — chrome rewrite is the natural place for them).
 
 The agent stays in the repo and is dispatched automatically by Claude Code in future sessions (`subagent_type=ui-reviewer`). Future major UI changes are expected to run it again — the optional B (Pixel-Perfect verify) extension below builds on the same artefacts.
+
+## Pixel-perfect verify pipeline (optional extension B)
+
+`homework/M4/pixel-perfect/` holds a self-contained Playwright + Anthropic vision-diff harness for the `/admin/feature-flags` Dashboard. Run order is `npm run all` (= `npm run screenshot && npm run verify`).
+
+Files of note:
+
+- `package.json` — ESM, isolated from the main `frontend/` so Playwright's headless chromium does not bloat the deploy tree.
+- `playwright.config.js` — 1440×900 viewport, single chromium project, baseURL `http://localhost:3000`.
+- `screenshot-dashboard.spec.js` — authenticates as admin through a real `POST /api/users/login` (mock tokens are rejected by the backend), writes the returned `userInfo` to `localStorage` via `addInitScript`, then navigates to `/admin/feature-flags`. The row check waits for the first `tbody tr` to be visible and asserts `count > 0` — robust to changes in `features.json`.
+- `reference/dashboard-reference.png` — the canonical baseline (139 KB). Captured at the end of the ui-reviewer enforce passes; future verify runs check against this.
+- `verify.js` — Node.js orchestrator that base64-encodes the current and reference screenshots, sends them to `claude-sonnet-4-6` via `@anthropic-ai/sdk`, and writes a Markdown report with match score (0–100), per-element differences with severity, verdict (PASS ≥ 95 / WARN 90–95 / FAIL < 90), and a top-line recommendation. Every report carries an explicit baseline-semantics note so a cold reader knows that "reference" here is the post-Ext-A snapshot, not an external Stripe Dashboard.
+
+Three reports are committed (the unsuffixed `verify-report.md` is transient and gitignored):
+
+- `verify-report-baseline.md` — `current == reference`. Match 100 / PASS.
+- `verify-report-regression.md` — captured after a simulated `--ff-accent` swap from `#0EA5E9` (sky-500) to `#10B981` (emerald-500). Match 92 / WARN. The model correctly localised the drift to the SEARCH button, the traffic sliders, and the active-tab underline. The WARN verdict — rather than FAIL — is a fair calibration for a single-token colour shift that does not break layout or interaction.
+- `verify-report-post-fix.md` — captured after the close-the-loop demo below. Match 100 / PASS again.
+
+`close-the-loop-demo.md` ties extensions A, B, and C into one cycle:
+
+1. Apply a tri-file token regression (extension C pattern).
+2. `npm run all` produces a WARN `verify-report.md` (extension B).
+3. Dispatch `.claude/agents/ui-reviewer.md` (extension A) in `MODE=enforce` with the verify report as input.
+4. The agent reads the report, reverts the token across all three sync'd files, and the next `npm run all` returns PASS.
+
+The orchestration is manual in this demo — a human runs each step. A fully automated F5-style loop (retry-until-pass, CI hook, automated scope inference from the vision-diff JSON) is the next milestone's scope.
+
+`ANTHROPIC_API_KEY` is required for `verify.js`; it is sourced from a chmod-600 file outside the repo at run time, so the key never enters git or the project tree. The three vision-diff calls in this round cost roughly two dollars in total on the Sonnet 4.6 vision endpoint.
