@@ -1,0 +1,113 @@
+.card {
+  margin-top: 24px;
+  padding: 20px 24px;
+  background: var(--ff-bg);
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-lg);
+  box-shadow: var(--ff-card-shadow);
+  font-family: var(--ff-font-sans);
+  color: var(--ff-fg);
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ff-fg);
+}
+
+.subtitle {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--ff-muted);
+}
+
+.buttonRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.button {
+  padding: 8px 16px;
+  font-family: var(--ff-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--ff-radius-md);
+  border: 1px solid var(--ff-border);
+  background: var(--ff-bg);
+  color: var(--ff-fg);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--ff-row-hover-bg);
+  border-color: var(--ff-accent);
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: var(--ff-accent);
+  box-shadow: 0 0 0 3px var(--ff-accent-ring);
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.buttonPrimary {
+  background: var(--ff-accent);
+  border-color: var(--ff-accent);
+  color: var(--ff-sidebar-text-strong);
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background: var(--ff-accent-hover);
+  border-color: var(--ff-accent-hover);
+}
+
+.buttonDanger {
+  background: var(--ff-danger-bg);
+  border-color: var(--ff-danger-bg);
+  color: var(--ff-sidebar-text-strong);
+}
+
+.buttonDanger:hover:not(:disabled) {
+  background: var(--ff-danger-bg-hover);
+  border-color: var(--ff-danger-bg-hover);
+}
+
+.alert {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--ff-radius-md);
+  font-size: 14px;
+  line-height: 1.45;
+  border: 1px solid transparent;
+}
+
+.alertSuccess {
+  background: var(--ff-status-enabled-bg);
+  border-color: var(--ff-status-enabled-bg);
+  color: var(--ff-status-enabled-text);
+}
+
+.alertError {
+  background: var(--ff-error-bg);
+  border-color: var(--ff-error-border);
+  color: var(--ff-error-fg);
+}
+
+.state {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ff-muted);
+}
+
+.stateLabel {
+  color: var(--ff-fg);
+  font-weight: 500;
+}

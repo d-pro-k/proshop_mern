@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 function normalize(raw) {
   return {
@@ -25,7 +25,9 @@ export function useFeatures() {
   var error = errorState[0]
   var setError = errorState[1]
 
-  useEffect(function () {
+  // loadFeatures returns a cleanup function so callers can cancel an
+  // in-flight request (useEffect cleanup uses this; refetch ignores it).
+  var loadFeatures = useCallback(function () {
     var cancelled = false
     setLoading(true)
     setError(null)
@@ -51,5 +53,14 @@ export function useFeatures() {
     return function () { cancelled = true }
   }, [])
 
-  return { features: features, loading: loading, error: error }
+  useEffect(function () {
+    return loadFeatures()
+  }, [loadFeatures])
+
+  return {
+    features: features,
+    loading: loading,
+    error: error,
+    refetch: loadFeatures,
+  }
 }

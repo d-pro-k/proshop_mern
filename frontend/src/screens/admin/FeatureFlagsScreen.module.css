@@ -665,6 +665,20 @@
   border-radius: var(--ff-radius-sm);
 }
 
+/* Selectable row — cursor hint that row click opens Auto-Pilot panel (M5 Part 1) */
+.rowSelectable {
+  cursor: pointer;
+}
+
+/* Selected row — visual indicator that Auto-Pilot panel below is for this feature */
+.rowSelected {
+  background: var(--ff-row-hover-bg);
+  box-shadow: inset 3px 0 0 var(--ff-accent);
+}
+.rowSelected:hover {
+  background: var(--ff-row-hover-bg);
+}
+
 /* Disabled row — visually de-emphasised */
 .rowDisabled {
   background: var(--ff-row-disabled-bg);

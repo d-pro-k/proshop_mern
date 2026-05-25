@@ -3,6 +3,7 @@ import { Link, useLocation, useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import s from './FeatureFlagsScreen.module.css'
 import { useFeatures } from './hooks/useFeatures'
+import AutoPilotControls from '../../components/AutoPilotControls'
 import {
   LayoutDashboardIcon,
   UsersIcon,
@@ -63,6 +64,7 @@ var FeatureFlagsScreen = function () {
   var features = fetchResult.features
   var loading = fetchResult.loading
   var error = fetchResult.error
+  var refetch = fetchResult.refetch
 
   // ?state= overrides fetch state for demo/dev
   var params = new URLSearchParams(location.search)
@@ -91,6 +93,44 @@ var FeatureFlagsScreen = function () {
   var slidersState = useState({})
   var sliders = slidersState[0]
   var setSliders = slidersState[1]
+
+  // Selected feature for Auto-Pilot panel (M5 Part 1). Click on a row sets this;
+  // clicking the same row again clears it; successful Auto-Pilot action also clears it.
+  var selectedState = useState(null)
+  var selectedFeature = selectedState[0]
+  var setSelectedFeature = selectedState[1]
+
+  // After Auto-Pilot action: refetch features (MCP wrote to backend) AND sync the
+  // local toggle/slider/selectedFeature for the affected feature so the badge,
+  // slider and the panel's "Текущее состояние" line reflect the new backend state.
+  // Panel stays open so the alert remains visible — user dismisses by clicking the
+  // same row again or selecting another feature.
+  // current_state shape from AI Agent: { id, name, status, traffic_percentage, last_modified }.
+  function handleAutoPilotUpdate(newState) {
+    refetch()
+    var fid = newState && (newState.id || newState.feature_id)
+    if (!fid) return
+    setToggles(function (prev) {
+      var next = Object.assign({}, prev)
+      next[fid] = newState.status !== 'Disabled'
+      return next
+    })
+    if (typeof newState.traffic_percentage === 'number') {
+      setSliders(function (prev) {
+        var next = Object.assign({}, prev)
+        next[fid] = newState.traffic_percentage
+        return next
+      })
+    }
+    setSelectedFeature(function (prev) {
+      if (!prev || prev.id !== fid) return prev
+      return Object.assign({}, prev, {
+        status: newState.status,
+        traffic: typeof newState.traffic_percentage === 'number' ? newState.traffic_percentage : prev.traffic,
+        modified: newState.last_modified || prev.modified,
+      })
+    })
+  }
 
   // Initialise toggles + sliders once when data arrives (don't overwrite user changes)
   useEffect(function () {
@@ -275,8 +315,20 @@ var FeatureFlagsScreen = function () {
             var traffic = sliders[feature.id] !== undefined ? sliders[feature.id] : feature.traffic
             var status = effectiveStatus(feature, toggles)
             var isDisabled = status === 'Disabled'
+            var isSelected = selectedFeature && selectedFeature.id === feature.id
+            var rowCls = s.rowSelectable
+            if (isDisabled) rowCls += ' ' + s.rowDisabled
+            if (isSelected) rowCls += ' ' + s.rowSelected
             return (
-              <tr key={feature.id} className={isDisabled ? s.rowDisabled : ''}>
+              <tr
+                key={feature.id}
+                className={rowCls}
+                onClick={function (e) {
+                  // Ignore clicks on interactive cell content (toggle, slider, sort headers).
+                  if (e.target.closest('button, input, a, select')) return
+                  setSelectedFeature(isSelected ? null : feature)
+                }}
+              >
                 <td>
                   <div className={s.featureName}>{feature.name}</div>
                   <div className={s.featureDescription}>{feature.description}</div>
@@ -569,6 +621,13 @@ var FeatureFlagsScreen = function () {
           </div>
 
           {renderContent()}
+
+          {selectedFeature && (
+            <AutoPilotControls
+              feature={selectedFeature}
+              onUpdate={handleAutoPilotUpdate}
+            />
+          )}
         </main>
       </div>
     </div>
