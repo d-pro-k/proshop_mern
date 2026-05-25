@@ -22,12 +22,25 @@ await client.connect(transport)
 const banner = (s) => console.log('\n=== ' + s + ' ===')
 
 const callTool = async (name, args) => {
-  const res = await client.callTool({ name, arguments: args })
-  const text = res.content?.[0]?.text ?? ''
-  const isError = !!res.isError
-  console.log((isError ? '[ERROR]' : '[OK]   ') + ' ' + name + ' ' + JSON.stringify(args))
-  console.log(text)
-  return { isError, text, parsed: text ? JSON.parse(text) : null }
+  try {
+    const res = await client.callTool({ name, arguments: args })
+    const text = res.content?.[0]?.text ?? ''
+    const isError = !!res.isError
+    let parsed = null
+    try { parsed = text ? JSON.parse(text) : null } catch { /* non-JSON: schema-level error */ }
+    // SDK surfaces schema-level (zod) validation as isError=true with a non-JSON 'MCP error -32602' string,
+    // BEFORE the handler runs.
+    const schemaRejected = isError && parsed === null && text.includes('Input validation error')
+    const label = schemaRejected ? '[SCHEMA-REJECT]' : isError ? '[ERROR]' : '[OK]   '
+    console.log(label + ' ' + name + ' ' + JSON.stringify(args))
+    console.log(text)
+    return { isError, text, parsed, schemaRejected }
+  } catch (e) {
+    const text = e?.message ?? String(e)
+    console.log('[THROW] ' + name + ' ' + JSON.stringify(args))
+    console.log(text)
+    return { isError: true, text, parsed: null, schemaRejected: true }
+  }
 }
 
 const expectOk = (label, r) => {
@@ -37,6 +50,12 @@ const expectError = (label, code, r) => {
   if (!r.isError) throw new Error(`expected error in ${label} but got OK`)
   if (r.parsed?.error !== code)
     throw new Error(`expected error code ${code} in ${label}, got ${r.parsed?.error}`)
+}
+const expectSchemaReject = (label, fragment, r) => {
+  if (!r.schemaRejected)
+    throw new Error(`expected schema-level rejection in ${label}, got handler-level: ${r.text}`)
+  if (!r.text.includes(fragment))
+    throw new Error(`expected schema error to mention '${fragment}' in ${label}, got: ${r.text}`)
 }
 
 try {
@@ -77,11 +96,25 @@ try {
     }),
   )
 
-  banner('5. adjust_traffic_rollout(search_v2, 12.5) — INVALID_PERCENTAGE')
-  expectError(
+  banner('5. adjust_traffic_rollout(search_v2, 12.5) — schema rejects non-integer')
+  expectSchemaReject(
     'adjust(search_v2, 12.5)',
-    'INVALID_PERCENTAGE',
+    'integer',
     await callTool('adjust_traffic_rollout', { feature_id: 'search_v2', percentage: 12.5 }),
+  )
+
+  banner('5a. adjust_traffic_rollout(search_v2, -50) — schema rejects negative (spec §C)')
+  expectSchemaReject(
+    'adjust(search_v2, -50)',
+    'percentage',
+    await callTool('adjust_traffic_rollout', { feature_id: 'search_v2', percentage: -50 }),
+  )
+
+  banner('5b. adjust_traffic_rollout(search_v2, 200) — schema rejects >100 (spec §C)')
+  expectSchemaReject(
+    'adjust(search_v2, 200)',
+    'percentage',
+    await callTool('adjust_traffic_rollout', { feature_id: 'search_v2', percentage: 200 }),
   )
 
   banner('6. adjust_traffic_rollout(search_v2, 25) — happy path')
@@ -119,10 +152,10 @@ try {
   if (r9.parsed.traffic_percentage !== 10)
     throw new Error('Testing from out-of-range traffic should default to 10, got ' + r9.parsed.traffic_percentage)
 
-  banner('10. set_feature_state(search_v2, lowercase) — INVALID_STATE')
-  expectError(
+  banner('10. set_feature_state(search_v2, lowercase) — schema rejects (enum)')
+  expectSchemaReject(
     'set_feature_state(search_v2, enabled)',
-    'INVALID_STATE',
+    'state',
     await callTool('set_feature_state', { feature_id: 'search_v2', state: 'enabled' }),
   )
 

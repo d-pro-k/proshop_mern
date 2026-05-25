@@ -184,9 +184,9 @@ server.registerTool(
         .string()
         .describe("snake_case key of the target feature, e.g. 'search_v2'."),
       state: z
-        .string()
+        .enum(['Disabled', 'Testing', 'Enabled'])
         .describe(
-          "Target status. Must be exactly one of 'Disabled', 'Testing', 'Enabled' (case-sensitive). Other values are rejected with INVALID_STATE.",
+          "Target status. Must be exactly one of 'Disabled', 'Testing', 'Enabled' (case-sensitive). Other values are rejected by schema validation before reaching the handler.",
         ),
     },
     annotations: {
@@ -256,8 +256,11 @@ server.registerTool(
         .describe("snake_case key of the target feature, e.g. 'search_v2'."),
       percentage: z
         .number()
+        .int()
+        .min(0)
+        .max(100)
         .describe(
-          "Integer in [0, 100] inclusive. Non-integer values (e.g. 12.5) are rejected.",
+          "Integer in [0, 100] inclusive. Non-integer values (e.g. 12.5) and out-of-range values (e.g. -50, 200) are rejected by schema validation before reaching the handler.",
         ),
     },
     annotations: {
