@@ -63,6 +63,19 @@
     },
     {
       "parameters": {
+        "jsCode": "// B.3 replay cooldown — read last_disabled_at from workflow staticData\n// and inject cooldown flags into the payload so Switch can gate the reenable branch.\nconst featureId = $json.feature_id;\nconst cooldownMs = 3 * 60 * 1000;\nconst now = Date.now();\n\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.feature_state) staticData.feature_state = {};\nconst featureState = staticData.feature_state[featureId] || {};\nconst lastDisabledAt = featureState.last_disabled_at || null;\n\nconst cooldownRemainingMs = lastDisabledAt\n  ? Math.max(0, cooldownMs - (now - lastDisabledAt))\n  : 0;\nconst cooldownActive = cooldownRemainingMs > 0;\n\nreturn [{ json: {\n  ...$json,\n  last_disabled_at: lastDisabledAt,\n  cooldown_remaining_ms: cooldownRemainingMs,\n  cooldown_active: cooldownActive\n}}];"
+      },
+      "id": "c1d2e3f4-5a6b-7c8d-9e0f-111213141516",
+      "name": "Check Cooldown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -168,
+        224
+      ]
+    },
+    {
+      "parameters": {
         "rules": {
           "values": [
             {
@@ -122,6 +135,15 @@
                     "rightValue": "Disabled",
                     "operator": {
                       "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "rule-reenable-cooldown",
+                    "leftValue": "={{ $json.cooldown_active }}",
+                    "rightValue": false,
+                    "operator": {
+                      "type": "boolean",
                       "operation": "equals"
                     }
                   }
@@ -351,6 +373,19 @@
         144,
         384
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// B.3 replay cooldown — persist last_disabled_at on confirmed deactivate.\n// Runs after the AI Agent on the merged path; guards on action_taken so reenable\n// and no_op runs do not overwrite the timestamp.\nconst output = $json.output || {};\nconst featureId = $('Merge Data').item.json.feature_id;\n\nif (output.action_taken === 'deactivated') {\n  const staticData = $getWorkflowStaticData('global');\n  if (!staticData.feature_state) staticData.feature_state = {};\n  if (!staticData.feature_state[featureId]) staticData.feature_state[featureId] = {};\n  staticData.feature_state[featureId].last_disabled_at = Date.now();\n}\n\nreturn [{ json: $json }];"
+      },
+      "id": "d2e3f4a5-6b7c-8d9e-0f12-131415161718",
+      "name": "Record Disable Timestamp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        144
+      ]
     }
   ],
   "pinData": {},
@@ -389,6 +424,17 @@
       ]
     },
     "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Check Cooldown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Cooldown": {
       "main": [
         [
           {
@@ -447,6 +493,17 @@
       ]
     },
     "AI Agent — Monitor Agent": {
+      "main": [
+        [
+          {
+            "node": "Record Disable Timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Disable Timestamp": {
       "main": [
         [
           {
