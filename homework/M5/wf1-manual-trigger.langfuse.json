@@ -159,15 +159,15 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ JSON.stringify($json) }}",
+        "text": "={{ JSON.stringify($('Flatten Webhook Body').item.json) }}",
         "hasOutputParser": true,
         "needsFallback": false,
         "langfuseMetadata": {
-          "sessionId": "={{ $json.feature_id }}",
+          "sessionId": "={{ $('Flatten Webhook Body').item.json.feature_id }}",
           "userId": "wf1-dispatcher"
         },
         "options": {
-          "systemMessage": "=Goal:\nВыполни запрос пользователя по управлению feature flag {{$json.feature_id}}.\n\nContext:\n- Текущее состояние feature flag получи через get_feature_info ПЕРЕД любыми изменениями.\n- Команда от UI: action={{$json.action}}, target_state={{$json.target_state}}, traffic_percentage={{$json.traffic_percentage}}.\n- Доступные actions: \"check\" (только чтение), \"test\" (перевести в Testing), \"rollback\" (Disabled), \"rollout\" (изменить traffic).\n- Available MCP tools: get_feature_info(feature_id), set_feature_state(feature_id, state), adjust_traffic_rollout(feature_id, percentage), list_features().\n- ВАЖНО про параметры MCP (отличается от UI payload):\n  - set_feature_state принимает параметр `state` (не target_state). Допустимые значения: \"Disabled\" | \"Testing\" | \"Enabled\".\n  - adjust_traffic_rollout принимает параметр `percentage` (не traffic_percentage), целое число в диапазоне [0, 100].\n- Side effects set_feature_state:\n  - \"Disabled\" → traffic автоматически = 0.\n  - \"Enabled\" → traffic автоматически = 100.\n  - \"Testing\" → traffic = 10 (если ранее был вне 1..99).\n  - Не вызывай adjust_traffic_rollout после set_feature_state(\"Testing\") — traffic уже = 10.\n- Требование adjust_traffic_rollout: фича должна быть в status=Testing. Если она Disabled/Enabled, сначала вызови set_feature_state(feature_id, \"Testing\"), затем adjust_traffic_rollout.\n\nAction:\n1. Если action=\"check\" — вызови get_feature_info и верни результат.\n2. Если action=\"test\" — get_feature_info → если уже Enabled, верни no_op success → иначе set_feature_state(feature_id, \"Testing\") → get_feature_info для верификации.\n3. Если action=\"rollback\" — get_feature_info → если уже Disabled, верни no_op success → иначе set_feature_state(feature_id, \"Disabled\") → get_feature_info.\n4. Если action=\"rollout\" — get_feature_info → при необходимости set_feature_state(feature_id, \"Testing\") → adjust_traffic_rollout(feature_id, percentage) → get_feature_info.\n5. На любом шаге если invalid params (например, traffic_percentage не передан для action=\"rollout\") — верни success=false с message без вызова инструментов.\n\nOutput:\nJSON строго по схеме:\n{\n  \"success\": boolean,\n  \"message\": string (краткое описание результата на русском, одно предложение),\n  \"current_state\": {\n    \"id\": string,\n    \"name\": string,\n    \"status\": \"Enabled\" | \"Disabled\" | \"Testing\",\n    \"traffic_percentage\": number,\n    \"last_modified\": string (ISO 8601)\n  } | null,\n  \"rejected_at\": \"input-validation\" | \"tool-execution\" | null\n}\n\nConstraints:\n- traffic_percentage в диапазоне [0, 100]. Получен -50 или 150 — success=false с пояснением.\n- target_state из enum [Enabled, Disabled, Testing]. Другое — success=false.\n- НЕ вызывай set_feature_state повторно, если current_state.status уже соответствует целевому.\n- Если MCP-инструмент вернул ответ с `warnings: [...]` (например, dependency не Enabled) — НЕ блокируй действие, передай предупреждения в `message` пользователю; считай вызов успешным.\n- Если MCP-инструмент вернул ошибку (`isError: true`, `code: INVALID_PERCENTAGE` / `WRONG_STATUS_FOR_ROLLOUT` / др.) — success=false с message от инструмента, rejected_at=\"tool-execution\".",
+          "systemMessage": "=Goal:\nВыполни запрос пользователя по управлению feature flag {{$('Flatten Webhook Body').item.json.feature_id}}.\n\nContext:\n- Текущее состояние feature flag получи через get_feature_info ПЕРЕД любыми изменениями.\n- Команда от UI: action={{$('Flatten Webhook Body').item.json.action}}, target_state={{$('Flatten Webhook Body').item.json.target_state}}, traffic_percentage={{$('Flatten Webhook Body').item.json.traffic_percentage}}.\n- Доступные actions: \"check\" (только чтение), \"test\" (перевести в Testing), \"rollback\" (Disabled), \"rollout\" (изменить traffic).\n- Available MCP tools: get_feature_info(feature_id), set_feature_state(feature_id, state), adjust_traffic_rollout(feature_id, percentage), list_features().\n- ВАЖНО про параметры MCP (отличается от UI payload):\n  - set_feature_state принимает параметр `state` (не target_state). Допустимые значения: \"Disabled\" | \"Testing\" | \"Enabled\".\n  - adjust_traffic_rollout принимает параметр `percentage` (не traffic_percentage), целое число в диапазоне [0, 100].\n- Side effects set_feature_state:\n  - \"Disabled\" → traffic автоматически = 0.\n  - \"Enabled\" → traffic автоматически = 100.\n  - \"Testing\" → traffic = 10 (если ранее был вне 1..99).\n  - Не вызывай adjust_traffic_rollout после set_feature_state(\"Testing\") — traffic уже = 10.\n- Требование adjust_traffic_rollout: фича должна быть в status=Testing. Если она Disabled/Enabled, сначала вызови set_feature_state(feature_id, \"Testing\"), затем adjust_traffic_rollout.\n\nAction:\n1. Если action=\"check\" — вызови get_feature_info и верни результат.\n2. Если action=\"test\" — get_feature_info → если уже Enabled, верни no_op success → иначе set_feature_state(feature_id, \"Testing\") → get_feature_info для верификации.\n3. Если action=\"rollback\" — get_feature_info → если уже Disabled, верни no_op success → иначе set_feature_state(feature_id, \"Disabled\") → get_feature_info.\n4. Если action=\"rollout\" — get_feature_info → при необходимости set_feature_state(feature_id, \"Testing\") → adjust_traffic_rollout(feature_id, percentage) → get_feature_info.\n5. На любом шаге если invalid params (например, traffic_percentage не передан для action=\"rollout\") — верни success=false с message без вызова инструментов.\n\nOutput:\nJSON строго по схеме:\n{\n  \"success\": boolean,\n  \"message\": string (краткое описание результата на русском, одно предложение),\n  \"current_state\": {\n    \"id\": string,\n    \"name\": string,\n    \"status\": \"Enabled\" | \"Disabled\" | \"Testing\",\n    \"traffic_percentage\": number,\n    \"last_modified\": string (ISO 8601)\n  } | null,\n  \"rejected_at\": \"input-validation\" | \"tool-execution\" | null\n}\n\nConstraints:\n- traffic_percentage в диапазоне [0, 100]. Получен -50 или 150 — success=false с пояснением.\n- target_state из enum [Enabled, Disabled, Testing]. Другое — success=false.\n- НЕ вызывай set_feature_state повторно, если current_state.status уже соответствует целевому.\n- Если MCP-инструмент вернул ответ с `warnings: [...]` (например, dependency не Enabled) — НЕ блокируй действие, передай предупреждения в `message` пользователю; считай вызов успешным.\n- Если MCP-инструмент вернул ошибку (`isError: true`, `code: INVALID_PERCENTAGE` / `WRONG_STATUS_FOR_ROLLOUT` / др.) — success=false с message от инструмента, rejected_at=\"tool-execution\".",
           "maxIterations": 5,
           "returnIntermediateSteps": true
         }
@@ -209,16 +209,45 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $json.feature_id }}"
+        "sessionKey": "={{ $('Flatten Webhook Body').item.json.feature_id }}",
+        "contextWindowLength": 10,
+        "tableName": "n8n_chat_histories"
       },
       "id": "ee6815b6-ec49-49d5-ae25-e5e496e35be9",
-      "name": "Window Buffer Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "name": "Postgres Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.3,
       "position": [
         208,
         464
-      ]
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "m5-postgres-chat-memory"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- B.2 defensive trim workaround (spec §Appendix C.3, n8n issue #12958)\n-- contextWindowLength on Postgres Chat Memory is not always respected by\n-- downstream langchain code; this trim guarantees per-session bounded growth\n-- regardless of the sub-node's window setting. Runs before AI Agent on every\n-- webhook call, idempotent on empty / under-cap sessions.\nDELETE FROM n8n_chat_histories\nWHERE id IN (\n  SELECT id FROM n8n_chat_histories\n  WHERE session_id = $1\n  ORDER BY id DESC\n  OFFSET 20\n);",
+        "options": {
+          "queryReplacement": "={{ $json.feature_id }}"
+        }
+      },
+      "id": "e1f2a3b4-c5d6-7890-1234-567890abcdef",
+      "name": "Postgres — Trim Session History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        56,
+        224
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "m5-postgres-chat-memory"
+        }
+      }
     },
     {
       "parameters": {
@@ -339,6 +368,17 @@
         ],
         [
           {
+            "node": "Postgres — Trim Session History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres — Trim Session History": {
+      "main": [
+        [
+          {
             "node": "AI Agent — Tools Agent",
             "type": "main",
             "index": 0
@@ -368,7 +408,7 @@
         ]
       ]
     },
-    "Window Buffer Memory": {
+    "Postgres Chat Memory": {
       "ai_memory": [
         [
           {
