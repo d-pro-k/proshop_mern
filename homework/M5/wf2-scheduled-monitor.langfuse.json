@@ -271,10 +271,224 @@
         "needsFallback": false,
         "langfuseMetadata": {
           "sessionId": "={{ $json.feature_id }}",
+          "userId": "wf2-defensive-guard"
+        },
+        "options": {
+          "systemMessage": "=Goal:\nРеши — нужна ли human approval перед действием \"deactivate\" для feature {{$json.feature_id}}.\n\nContext:\n- Action: deactivate (downstream выполнит set_feature_state(feature_id, \"Disabled\")).\n- Target state: Disabled (traffic auto → 0).\n- Current state: status={{$json.current_status}}, traffic={{$json.current_traffic}}%.\n- Error rate за окно 60s: {{ ($json.error_rate * 100).toFixed(1) }}% (threshold deactivate = 5%).\n- Production-критичность фичи: true (search_v2 — основная поисковая воронка proshop_mern, hardcoded is_critical=true).\n- Server time (UTC): {{ $now.toISO() }}\n- Local time hint: Kyiv EEST = UTC+3; рабочие часы 09:00–18:00 EEST = 06:00–15:00 UTC. Outside этого диапазона = outside work hours.\n\nAction:\nОцени риск по 5 критериям spec §Appendix E:\n1. Действие необратимо? — Disabled требует manual re-enable; B.3 cooldown 3 мин дополнительно блокирует автоматический reenable.\n2. Затрагивает production-критичную фичу? — is_critical=true для search_v2.\n3. Снижение traffic > 25% за один шаг? — current_traffic → 0; считай true если current_traffic >= 25.\n4. Время вне рабочих часов? — посмотри Server time (UTC), сравни с 06:00–15:00 UTC окном.\n5. Действие на Enabled-фиче (фактическая деактивация production)? — current_status == \"Enabled\".\n\nПосчитай сколько критериев true. Если 2 или больше — requires_approval = true.\n\nConstraints:\n- Override rule: is_critical=true И action=deactivate → ВСЕГДА requires_approval=true (production-safety override).\n- approval_message формата: \"Подтвердите деактивацию: {feature_id} (status {current_status}, traffic {current_traffic}%, error rate {X}%). Risk: {risk_factors_short}.\"\n- risk_factors — массив коротких русских строк с названиями сработавших критериев (например, [\"production-critical feature\", \"traffic drop ≥ 25%\", \"outside work hours\"]).\n- НЕ вызывай никакие tools — это чистая reasoning-нода без MCP.\n\nOutput:\nJSON строго по схеме:\n{\n  \"requires_approval\": boolean,\n  \"risk_factors\": [\"string\"],\n  \"auto_execute_allowed\": boolean,\n  \"approval_message\": string | null\n}",
+          "maxIterations": 3,
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Defensive Guard",
+      "type": "n8n-nodes-ai-agent-langfuse.agentWithLangfuse",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -64
+      ],
+      "credentials": {
+        "langfuseCustomApi": {
+          "name": "m5-langfuse"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\"requires_approval\", \"risk_factors\", \"auto_execute_allowed\"],\n  \"properties\": {\n    \"requires_approval\": {\"type\": \"boolean\"},\n    \"risk_factors\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}},\n    \"auto_execute_allowed\": {\"type\": \"boolean\"},\n    \"approval_message\": {\"type\": [\"string\", \"null\"]}\n  }\n}"
+      },
+      "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+      "name": "Defensive Guard Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rule-hitl-required",
+                    "leftValue": "={{ $json.output.requires_approval }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "approval_required"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "auto_execute"
+        }
+      },
+      "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+      "name": "Switch — HITL Gate",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        520,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "=<<YOUR_TELEGRAM_CHAT_ID>>",
+        "text": "={{ '⚠️ HITL approval required\\n\\n' + $json.output.approval_message + '\\n\\nRisk factors:\\n• ' + $json.output.risk_factors.join('\\n• ') + '\\n\\nDecide within ~10 min:' }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Approve",
+                    "additionalFields": {
+                      "url": "={{ $execution.resumeUrl }}&action=approve"
+                    }
+                  },
+                  {
+                    "text": "❌ Decline",
+                    "additionalFields": {
+                      "url": "={{ $execution.resumeUrl }}&action=decline"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "id": "d4e5f6a7-b8c9-0123-def4-456789012345",
+      "name": "Telegram — Approval Request",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        -160
+      ],
+      "webhookId": "5af2bcde-1234-4567-89ab-cdef01234567",
+      "credentials": {
+        "telegramApi": {
+          "id": "HUY8osvPfGSKoEkf",
+          "name": "m5-telegram-alerts"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "id": "e5f6a7b8-c9d0-1234-ef56-567890123456",
+      "name": "Wait — Approval",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        920,
+        -160
+      ],
+      "webhookId": "6bf3cdef-2345-5678-9abc-def012345678"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "rule-resume-approve",
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "approve",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "approved"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "declined"
+        }
+      },
+      "id": "f6a7b8c9-d0e1-2345-f678-678901234567",
+      "name": "Switch — Resume Decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "=<<YOUR_TELEGRAM_CHAT_ID>>",
+        "text": "={{ '❌ Deactivate aborted by operator for ' + $('Set Decision deactivate').item.json.feature_id + '. Feature stays ' + $('Set Decision deactivate').item.json.current_status + ' (traffic ' + $('Set Decision deactivate').item.json.current_traffic + '%). Cooldown NOT recorded — next cron may re-prompt.' }}",
+        "additionalFields": {}
+      },
+      "id": "a7b8c9d0-e1f2-3456-7890-789012345678",
+      "name": "Telegram — Decline Ack",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1320,
+        -240
+      ],
+      "webhookId": "7cd4def0-3456-6789-abcd-ef0123456789",
+      "credentials": {
+        "telegramApi": {
+          "id": "HUY8osvPfGSKoEkf",
+          "name": "m5-telegram-alerts"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json) }}",
+        "hasOutputParser": true,
+        "needsFallback": false,
+        "langfuseMetadata": {
+          "sessionId": "={{ $('Merge Data').item.json.feature_id }}",
           "userId": "wf2-monitor"
         },
         "options": {
-          "systemMessage": "=Goal:\nЗарегистрировать инцидент или recovery для feature {{$json.feature_id}}.\nТекущий error rate: {{$json.error_rate}} (threshold deactivate: 5%, threshold re-enable: 1%).\nТекущее состояние: {{$json.current_status}} (traffic {{$json.current_traffic}}%).\nDecision из upstream: {{$json.decision}} (deactivate | reenable | noop).\n\nContext:\n- Decision уже посчитан upstream (в Switch-ноде по error_rate + current_status) — твоя задача выполнить решение через MCP.\n- Available MCP tools: get_feature_info(feature_id), set_feature_state(feature_id, state).\n- ВАЖНО про параметры MCP (отличается от spec шаблона):\n  - set_feature_state принимает параметр `state` (не target_state). Допустимые значения: \"Disabled\" | \"Testing\" | \"Enabled\".\n- Side effects set_feature_state:\n  - \"Disabled\" → traffic автоматически = 0.\n  - \"Enabled\" → traffic автоматически = 100. **Это значит: если фича была в Testing с traffic=25 и мы её Disabled→Enabled, она вернётся с traffic=100, не с 25.**\n  - \"Testing\" → traffic = 10 (если ранее был вне 1..99).\n- Threshold deactivate = 5%, re-enable = 1%. При decision=deactivate фича сейчас НЕ Disabled. При decision=reenable фича сейчас Disabled.\n- НЕ принимай решение самостоятельно: следуй decision из payload. Это Algorithm-before-AI — guards снаружи модели.\n\nAction:\n1. Вызови get_feature_info(feature_id) для актуального state (на случай гонки между Switch и AI Agent).\n2. Если decision=\"deactivate\":\n   - Проверь что status != \"Disabled\". Если уже Disabled — верни action_taken=\"no_op\", reason=\"already_disabled\" (защита от спама).\n   - Иначе вызови set_feature_state(feature_id, \"Disabled\").\n   - Снова get_feature_info для верификации.\n3. Если decision=\"reenable\":\n   - Проверь что status == \"Disabled\". Если уже Enabled/Testing — верни action_taken=\"no_op\", reason=\"already_enabled\".\n   - Иначе вызови set_feature_state(feature_id, \"Enabled\").\n   - Снова get_feature_info для верификации.\n4. Если decision=\"noop\" — ничего не делать, верни action_taken=\"no_op\", reason=\"within_threshold\".\n5. Сформируй короткий русский alert_message для Telegram (см. Constraints ниже).\n\nOutput:\nJSON строго по схеме:\n{\n  \"action_taken\": \"deactivated\" | \"reenabled\" | \"no_op\" | \"error\",\n  \"previous_state\": object | null,\n  \"new_state\": object | null,\n  \"alert_message\": string (1-2 предложения для Telegram, на русском),\n  \"error_rate_percent\": number (округли error_rate * 100 до 1 знака),\n  \"threshold_used\": number (0.05 для deactivate, 0.01 для reenable, 0 для noop),\n  \"reason\": string | null\n}\n\nConstraints:\n- alert_message формат:\n  - deactivated: \"🚨 Feature {feature_id} деактивирована: error rate {X}% превысил порог {Y}%.\"\n  - reenabled:   \"✅ Feature {feature_id} восстановлена: error rate {X}% упал ниже {Y}%.\"\n  - no_op:       \"ℹ️ Feature {feature_id} — без изменений (error rate {X}%, статус {S}).\"\n- НЕ вызывай set_feature_state если state уже соответствует целевому.\n- При ошибке от MCP (isError: true) — action_taken=\"error\" с reason содержащим текст ошибки.\n- Если MCP вернул ответ с `warnings: [...]` (например, dependency не Enabled) — НЕ блокируй действие, передай предупреждения в alert_message; считай вызов успешным.",
+          "systemMessage": "=Goal:\nЗарегистрировать инцидент или recovery для feature {{$('Merge Data').item.json.feature_id}}.\nТекущий error rate: {{$('Merge Data').item.json.error_rate}} (threshold deactivate: 5%, threshold re-enable: 1%).\nТекущее состояние: {{$('Merge Data').item.json.current_status}} (traffic {{$('Merge Data').item.json.current_traffic}}%).\nDecision из upstream: {{$json.decision}} (deactivate | reenable | noop).\n\nContext:\n- Decision уже посчитан upstream (в Switch-ноде по error_rate + current_status) — твоя задача выполнить решение через MCP.\n- Available MCP tools: get_feature_info(feature_id), set_feature_state(feature_id, state).\n- ВАЖНО про параметры MCP (отличается от spec шаблона):\n  - set_feature_state принимает параметр `state` (не target_state). Допустимые значения: \"Disabled\" | \"Testing\" | \"Enabled\".\n- Side effects set_feature_state:\n  - \"Disabled\" → traffic автоматически = 0.\n  - \"Enabled\" → traffic автоматически = 100. **Это значит: если фича была в Testing с traffic=25 и мы её Disabled→Enabled, она вернётся с traffic=100, не с 25.**\n  - \"Testing\" → traffic = 10 (если ранее был вне 1..99).\n- Threshold deactivate = 5%, re-enable = 1%. При decision=deactivate фича сейчас НЕ Disabled. При decision=reenable фича сейчас Disabled.\n- НЕ принимай решение самостоятельно: следуй decision из payload. Это Algorithm-before-AI — guards снаружи модели.\n\nAction:\n1. Вызови get_feature_info(feature_id) для актуального state (на случай гонки между Switch и AI Agent).\n2. Если decision=\"deactivate\":\n   - Проверь что status != \"Disabled\". Если уже Disabled — верни action_taken=\"no_op\", reason=\"already_disabled\" (защита от спама).\n   - Иначе вызови set_feature_state(feature_id, \"Disabled\").\n   - Снова get_feature_info для верификации.\n3. Если decision=\"reenable\":\n   - Проверь что status == \"Disabled\". Если уже Enabled/Testing — верни action_taken=\"no_op\", reason=\"already_enabled\".\n   - Иначе вызови set_feature_state(feature_id, \"Enabled\").\n   - Снова get_feature_info для верификации.\n4. Если decision=\"noop\" — ничего не делать, верни action_taken=\"no_op\", reason=\"within_threshold\".\n5. Сформируй короткий русский alert_message для Telegram (см. Constraints ниже).\n\nOutput:\nJSON строго по схеме:\n{\n  \"action_taken\": \"deactivated\" | \"reenabled\" | \"no_op\" | \"error\",\n  \"previous_state\": object | null,\n  \"new_state\": object | null,\n  \"alert_message\": string (1-2 предложения для Telegram, на русском),\n  \"error_rate_percent\": number (округли error_rate * 100 до 1 знака),\n  \"threshold_used\": number (0.05 для deactivate, 0.01 для reenable, 0 для noop),\n  \"reason\": string | null\n}\n\nConstraints:\n- alert_message формат:\n  - deactivated: \"🚨 Feature {feature_id} деактивирована: error rate {X}% превысил порог {Y}%.\"\n  - reenabled:   \"✅ Feature {feature_id} восстановлена: error rate {X}% упал ниже {Y}%.\"\n  - no_op:       \"ℹ️ Feature {feature_id} — без изменений (error rate {X}%, статус {S}).\"\n- НЕ вызывай set_feature_state если state уже соответствует целевому.\n- При ошибке от MCP (isError: true) — action_taken=\"error\" с reason содержащим текст ошибки.\n- Если MCP вернул ответ с `warnings: [...]` (например, dependency не Enabled) — НЕ блокируй действие, передай предупреждения в alert_message; считай вызов успешным.",
           "maxIterations": 5,
           "returnIntermediateSteps": true
         }
@@ -284,8 +498,8 @@
       "type": "n8n-nodes-ai-agent-langfuse.agentWithLangfuse",
       "typeVersion": 2,
       "position": [
-        400,
-        144
+        1320,
+        80
       ],
       "credentials": {
         "langfuseCustomApi": {
@@ -303,8 +517,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        256,
-        384
+        1176,
+        320
       ],
       "credentials": {
         "openAiApi": {
@@ -323,8 +537,8 @@
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
       "typeVersion": 1,
       "position": [
-        400,
-        384
+        1320,
+        320
       ]
     },
     {
@@ -337,8 +551,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        544,
-        384
+        1464,
+        320
       ]
     },
     {
@@ -352,8 +566,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        656,
-        144
+        1720,
+        80
       ],
       "webhookId": "f20b18d5-43de-499f-a7a8-40a4fb69a1fa",
       "credentials": {
@@ -383,8 +597,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        528,
-        144
+        1520,
+        80
       ]
     }
   ],
@@ -474,7 +688,7 @@
       "main": [
         [
           {
-            "node": "AI Agent — Monitor Agent",
+            "node": "Defensive Guard",
             "type": "main",
             "index": 0
           }
@@ -486,6 +700,75 @@
         [
           {
             "node": "AI Agent — Monitor Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Defensive Guard": {
+      "main": [
+        [
+          {
+            "node": "Switch — HITL Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch — HITL Gate": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Approval Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent — Monitor Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram — Approval Request": {
+      "main": [
+        [
+          {
+            "node": "Wait — Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait — Approval": {
+      "main": [
+        [
+          {
+            "node": "Switch — Resume Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch — Resume Decision": {
+      "main": [
+        [
+          {
+            "node": "AI Agent — Monitor Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram — Decline Ack",
             "type": "main",
             "index": 0
           }
@@ -521,6 +804,11 @@
             "node": "AI Agent — Monitor Agent",
             "type": "ai_languageModel",
             "index": 0
+          },
+          {
+            "node": "Defensive Guard",
+            "type": "ai_languageModel",
+            "index": 0
           }
         ]
       ]
@@ -541,6 +829,17 @@
         [
           {
             "node": "AI Agent — Monitor Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Defensive Guard Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Defensive Guard",
             "type": "ai_outputParser",
             "index": 0
           }
