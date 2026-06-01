@@ -70,6 +70,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          show_full_output: true
           prompt: |
             You are reviewing PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
 
@@ -96,7 +97,6 @@ jobs:
           claude_args: >-
             --model claude-sonnet-4-6
             --max-turns 8
-            --max-tokens 4096
 
   # ===================================================================
   # Tier 2: Agent Team (deep review)
@@ -145,6 +145,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          show_full_output: true
           prompt: |
             You are the LEAD coordinator for an Agent Team PR review.
 
@@ -178,7 +179,6 @@ jobs:
           claude_args: >-
             --model claude-opus-4-8
             --max-turns 20
-            --max-tokens 12000
 
       - name: Upload reports as artifact
         if: always()
