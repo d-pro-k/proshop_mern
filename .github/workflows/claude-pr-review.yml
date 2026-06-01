@@ -97,10 +97,18 @@ jobs:
 
             At the end, post a single summary comment grouping all findings by severity.
             If no issues found, post: "✅ Claude review complete — no blocking issues found."
+
+            Tool usage rules (CI environment — follow exactly):
+            - Use ONLY plain, single bash commands. Never use redirections (`2>&1`),
+              pipes (`|`), or chaining (`&&`, `;`, `||`). Run `gh pr diff` exactly,
+              not `gh pr diff 2>&1` — a compound command is blocked and wastes turns.
+            - Get the diff with `gh pr diff` and read files with the Read tool.
+            - Post inline comments with mcp__github_inline_comment__create_inline_comment;
+              post the summary with `gh pr comment`.
+            - Do NOT use the Agent, Skill, Task, or Write tools — they are unavailable here.
           claude_args: >-
             --model claude-sonnet-4-6
             --max-turns 25
-            --permission-mode bypassPermissions
 
   # ===================================================================
   # Tier 2: Agent Team (deep review)
