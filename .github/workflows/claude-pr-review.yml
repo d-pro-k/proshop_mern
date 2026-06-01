@@ -48,8 +48,11 @@ jobs:
   review-single:
     name: Single Claude Review
     # Runs on every PR open/sync, UNLESS label "deep-review" or "skip-review" is present
+    # Same-repo PRs only: with bypassPermissions the agent has broad tool access,
+    # so fork PRs (which could carry prompt-injection in their diff) must not trigger it.
     if: |
       github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       !contains(github.event.pull_request.labels.*.name, 'deep-review') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-review')
     runs-on: ubuntu-latest
@@ -95,7 +98,7 @@ jobs:
             At the end, post a single summary comment grouping all findings by severity.
             If no issues found, post: "✅ Claude review complete — no blocking issues found."
           claude_args: >-
-            --model claude-opus-4-8
+            --model claude-sonnet-4-6
             --max-turns 25
             --permission-mode bypassPermissions
 
@@ -110,6 +113,7 @@ jobs:
     name: Agent Team Deep Review
     if: |
       (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
        github.event.action == 'labeled' &&
        github.event.label.name == 'deep-review') ||
       (github.event_name == 'workflow_dispatch' &&
