@@ -74,6 +74,22 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           show_full_output: true
+          # Least-privilege allowlist: only the tools a read-only review needs.
+          # gh is scoped to PR read + comment; no arbitrary shell, no bypass.
+          settings: |
+            {
+              "permissions": {
+                "allow": [
+                  "Read",
+                  "Grep",
+                  "Glob",
+                  "Bash(gh pr diff:*)",
+                  "Bash(gh pr view:*)",
+                  "Bash(gh pr comment:*)",
+                  "mcp__github_inline_comment__create_inline_comment"
+                ]
+              }
+            }
           prompt: |
             You are reviewing PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
 
