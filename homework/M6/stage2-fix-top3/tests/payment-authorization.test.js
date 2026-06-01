@@ -56,9 +56,11 @@ describe('updateOrderToPaid — payment authorization (characterization)', () =>
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('CURRENT BEHAVIOR: lets a NON-owner mark the order paid (SEC-02 target)', async () => {
-    // Pins the insecure status quo: any authenticated user can pay any order.
-    // After the fix this becomes a 403 and the assertions below are updated.
+  it('rejects a NON-owner with 403 and does not mark the order paid (SEC-02 target)', async () => {
+    // INTENTIONAL BEHAVIOR CHANGE — see fix-1-payment-authorization.md.
+    // Pre-fix this test pinned the insecure status quo (any authenticated user
+    // could pay any order). The fix adds an ownership/admin check, so a non-owner
+    // is now rejected with 403 and the order is left untouched.
     const order = makeOrder(OWNER);
     Order.findById.mockResolvedValue(order);
     const req = { params: { id: 'o1' }, body: paymentBody, user: { _id: OTHER, isAdmin: false } };
@@ -67,10 +69,12 @@ describe('updateOrderToPaid — payment authorization (characterization)', () =>
 
     await updateOrderToPaid(req, res, next);
 
-    expect(order.isPaid).toBe(true);
-    expect(order.save).toHaveBeenCalledOnce();
-    expect(res.json).toHaveBeenCalledWith(order);
-    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).toHaveBeenCalledOnce();
+    expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+    expect(order.isPaid).toBe(false);
+    expect(order.save).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
   });
 
   it('allows an admin who is not the owner to mark the order paid (non-target)', async () => {

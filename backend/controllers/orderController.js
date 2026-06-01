@@ -114,6 +114,11 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
 
   if (order) {
+    if (order.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+      res.status(403)
+      throw new Error('Not authorized to update this order')
+    }
+
     order.isPaid = true
     order.paidAt = Date.now()
     order.paymentResult = {
