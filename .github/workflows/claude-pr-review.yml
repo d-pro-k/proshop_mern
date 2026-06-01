@@ -96,7 +96,7 @@ jobs:
             If no issues found, post: "✅ Claude review complete — no blocking issues found."
           claude_args: >-
             --model claude-sonnet-4-6
-            --max-turns 8
+            --max-turns 25
 
   # ===================================================================
   # Tier 2: Agent Team (deep review)
@@ -178,7 +178,7 @@ jobs:
                - Token usage estimate (for cost awareness)
           claude_args: >-
             --model claude-opus-4-8
-            --max-turns 20
+            --max-turns 30
 
       - name: Upload reports as artifact
         if: always()
