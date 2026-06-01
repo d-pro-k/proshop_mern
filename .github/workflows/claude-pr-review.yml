@@ -78,6 +78,7 @@ jobs:
           # gh is scoped to PR read + comment; no arbitrary shell, no bypass.
           settings: |
             {
+              "enableAllProjectMcpServers": true,
               "permissions": {
                 "allow": [
                   "Read",
