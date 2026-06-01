@@ -95,7 +95,7 @@ jobs:
             At the end, post a single summary comment grouping all findings by severity.
             If no issues found, post: "✅ Claude review complete — no blocking issues found."
           claude_args: >-
-            --model claude-sonnet-4-6
+            --model claude-opus-4-8
             --max-turns 25
             --permission-mode bypassPermissions
 
