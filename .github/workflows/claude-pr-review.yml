@@ -48,8 +48,9 @@ jobs:
   review-single:
     name: Single Claude Review
     # Runs on every PR open/sync, UNLESS label "deep-review" or "skip-review" is present
-    # Same-repo PRs only: with bypassPermissions the agent has broad tool access,
-    # so fork PRs (which could carry prompt-injection in their diff) must not trigger it.
+    # Same-repo PRs only (defence-in-depth): keeps fork PRs — which could carry
+    # prompt-injection in their diff — from triggering the review agent. Matters most
+    # for the Agent Team job below, which still runs with bypassPermissions.
     if: |
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -74,11 +75,12 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           show_full_output: true
-          # Least-privilege allowlist: only the tools a read-only review needs.
-          # gh is scoped to PR read + comment; the gh api fallback (used to post
-          # inline comments when the inline MCP tool is unavailable) is locked to
-          # the PR comments/reviews endpoints only — no arbitrary shell, no bypass,
-          # no broad REST access.
+          # Least-privilege allowlist: only the tools a read-only review needs —
+          # Read/Grep/Glob + scoped `gh pr` for the diff and a summary comment.
+          # No arbitrary shell, no `gh api`, no bypass. Findings are reported in the
+          # summary comment; inline threads would require broader access (the inline
+          # MCP tool is not registered when a custom settings block is supplied, and
+          # the only fallback is over-broad `gh api`) — not worth the surface.
           settings: |
             {
               "enableAllProjectMcpServers": true,
@@ -90,8 +92,6 @@ jobs:
                   "Bash(gh pr diff:*)",
                   "Bash(gh pr view:*)",
                   "Bash(gh pr comment:*)",
-                  "Bash(gh api repos/*/pulls/*/comments:*)",
-                  "Bash(gh api repos/*/pulls/*/reviews:*)",
                   "mcp__github_inline_comment__create_inline_comment"
                 ]
               }
@@ -211,6 +211,11 @@ jobs:
                - Top 3 HIGH issues with file:line
                - Mailbox traffic summary (how many cross-mate messages exchanged)
                - Token usage estimate (for cost awareness)
+          # bypassPermissions is retained here on purpose: the Agent Team legitimately
+          # needs broad tools (sub-agent spawning, file writes for JSONL reports,
+          # mailbox). Unlike the single job, this tier is opt-in (manual `deep-review`
+          # label) and same-repo-gated, so the trigger surface is small. A scoped
+          # allowlist for the multi-agent flow is a separate follow-up.
           claude_args: >-
             --model claude-opus-4-8
             --max-turns 30
