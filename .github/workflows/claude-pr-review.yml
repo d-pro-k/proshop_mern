@@ -1,14 +1,17 @@
 # Claude PR Review — GitHub Actions workflow
 #
 # Two tiers:
-#   - Default (single agent): runs on every PR open/sync, cheap, reliable (Sonnet 4.6)
-#   - Agent Team (label "deep-review" or manual dispatch): full team review (Opus 4.8)
+#   - Default (single agent): runs on every same-repo PR open/sync, least-privilege
+#     allowlist, no bypass (Sonnet 4.6). Posts a summary review.
+#   - Agent Team (manual workflow_dispatch only): full team review (Opus 4.8). Runs
+#     with bypassPermissions, so it is NOT PR-triggered — a human dispatches it.
 #
 # Setup:
 #   1. This file lives in .github/workflows/
 #   2. GitHub → Settings → Secrets → Actions → add ANTHROPIC_API_KEY
-#   3. Create labels: deep-review (triggers Agent Team), skip-review (skips all review)
-#   4. Open any PR against master → see Claude comments in 3-5 min
+#   3. Install the Claude GitHub App (github.com/apps/claude) on the repo
+#   4. (optional) skip-review label suppresses the single review on a PR
+#   5. Open any same-repo PR against master → see the Claude summary in 3-5 min
 #
 # Cost (per PR):
 #   - Default mode: $0.04-0.30 (Sonnet 4.6, single agent)
@@ -22,7 +25,7 @@ name: Claude PR Review
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled]
+    types: [opened, synchronize]
     branches: [main, master]
 
   # Manual trigger via GitHub Actions UI (for deep review on demand)
@@ -47,14 +50,12 @@ jobs:
   # ===================================================================
   review-single:
     name: Single Claude Review
-    # Runs on every PR open/sync, UNLESS label "deep-review" or "skip-review" is present
-    # Same-repo PRs only (defence-in-depth): keeps fork PRs — which could carry
-    # prompt-injection in their diff — from triggering the review agent. Matters most
-    # for the Agent Team job below, which still runs with bypassPermissions.
+    # Runs on every same-repo PR open/sync, UNLESS a "skip-review" label is present.
+    # Same-repo only (defence-in-depth): keeps fork PRs — which could carry
+    # prompt-injection in their diff — from triggering the review agent.
     if: |
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      !contains(github.event.pull_request.labels.*.name, 'deep-review') &&
       !contains(github.event.pull_request.labels.*.name, 'skip-review')
     runs-on: ubuntu-latest
     permissions:
@@ -134,20 +135,17 @@ jobs:
 
   # ===================================================================
   # Tier 2: Agent Team (deep review)
-  # Triggered by:
-  #   - Adding label "deep-review" to a PR, OR
-  #   - Manual workflow_dispatch with mode=agent-team
-  # Expensive but deep — uses 3 specialist mates in parallel.
+  # MANUAL DISPATCH ONLY (workflow_dispatch with mode=agent-team).
+  # This tier runs with bypassPermissions, so it must NOT be reachable from PR
+  # content — a labelled/automatic trigger would let a malicious PR prompt-inject
+  # the broad-tool agent. Requiring a human to dispatch it from the Actions UI
+  # closes that vector. Expensive but deep — uses 3 specialist mates in parallel.
   # ===================================================================
   review-agent-team:
     name: Agent Team Deep Review
     if: |
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.action == 'labeled' &&
-       github.event.label.name == 'deep-review') ||
-      (github.event_name == 'workflow_dispatch' &&
-       github.event.inputs.mode == 'agent-team')
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.mode == 'agent-team'
     runs-on: ubuntu-latest
     permissions:
       contents: read
