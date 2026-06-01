@@ -42,17 +42,19 @@ beforeEach(() => {
 });
 
 describe('feature-flags routes — access control (characterization)', () => {
-  it('CURRENT BEHAVIOR: serves the flag list to an anonymous caller (SEC-04 target)', async () => {
-    // Pins the public endpoint. After the fix anonymous access returns 401.
+  it('denies the flag list to an anonymous caller with 401 (SEC-04 target)', async () => {
+    // INTENTIONAL BEHAVIOR CHANGE — see fix-4-feature-flags-auth.md.
+    // Pre-fix this pinned the public endpoint (200). The fix adds protect + admin,
+    // so an anonymous caller is now rejected before reaching the controller.
     const res = await request(makeApp()).get('/');
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.status).toBe(401);
   });
 
-  it('CURRENT BEHAVIOR: serves a single flag lookup to an anonymous caller (SEC-04 target)', async () => {
-    // Unknown id still reaches the controller (404), proving no auth gate exists.
+  it('denies a single flag lookup to an anonymous caller with 401 (SEC-04 target)', async () => {
+    // INTENTIONAL BEHAVIOR CHANGE — see fix-4-feature-flags-auth.md.
+    // Pre-fix an unknown id reached the controller (404); now auth is enforced first.
     const res = await request(makeApp()).get('/__does_not_exist__');
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
   });
 
   it('serves the flag list to an authenticated admin (non-target)', async () => {
