@@ -67,10 +67,10 @@ describe('protect — JWT verification (characterization)', () => {
     expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
   });
 
-  it('CURRENT BEHAVIOR: verifies without restricting the algorithm (SEC-03 target)', async () => {
-    // Pins the insecure call contract: jwt.verify is invoked with only
-    // (token, secret) and no algorithms allow-list. After the fix the third
-    // argument becomes { algorithms: ['HS256'] } and this assertion is updated.
+  it('verifies with an explicit HS256 algorithm allow-list (SEC-03 target)', async () => {
+    // INTENTIONAL BEHAVIOR CHANGE — see fix-3-jwt-algorithm-allowlist.md.
+    // Pre-fix this test pinned the insecure call contract (no algorithms option,
+    // allowing algorithm-confusion / forged-token attacks). The fix pins HS256.
     jwt.verify.mockReturnValue({ id: 'u1' });
     const req = { headers: { authorization: 'Bearer the-token' } };
     const res = makeRes();
@@ -82,6 +82,6 @@ describe('protect — JWT verification (characterization)', () => {
     const args = jwt.verify.mock.calls[0];
     expect(args[0]).toBe('the-token');
     expect(args[1]).toBe('test-secret');
-    expect(args[2]).toBeUndefined();
+    expect(args[2]).toEqual({ algorithms: ['HS256'] });
   });
 });
