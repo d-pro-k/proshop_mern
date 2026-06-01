@@ -34,4 +34,14 @@ The differences:
 
 - Same PR, same diff for all three runs (only the workflow's model / topology differed between runs).
 - Costs are each run's reported `total_cost_usd`; turn counts are reported `num_turns`.
-- The single-pass model swap (Sonnet → Opus) was a one-line `--model` change; the team run was triggered by the `deep-review` label, which routes to the parallel multi-agent job.
+- The single-pass model swap (Sonnet → Opus) was a one-line `--model` change; at the time of this comparison the team run was triggered by a `deep-review` label.
+
+## Postscript — security hardening after this comparison
+
+Getting the review to post at all initially required `--permission-mode bypassPermissions`, and the review itself flagged that as its top finding (a prompt-injection escalation path on PR-triggered jobs). The workflow was subsequently hardened:
+
+- **Single review (runs on every PR):** switched to an explicit least-privilege allowlist (`Read`/`Grep`/`Glob` + scoped `gh pr diff`/`view`/`comment` + the inline-comment MCP tool) with **no `bypassPermissions`** and **no broad `gh api`**. Trade-off: the inline-comment MCP tool is not registered when a custom `settings` allowlist is supplied, so this tier posts a consolidated **summary** review rather than inline threads.
+- **Agent Team (the expensive tier):** legitimately needs broad tools (sub-agent spawning, file writes, mailbox), so it retains `bypassPermissions` — but is now **manual-dispatch-only** (no PR-triggered path), so PR content can never reach the broad-tool agent.
+- **Defence-in-depth:** both jobs are gated to same-repo PRs; the token is scoped to `contents: read` + `pull-requests: write`.
+
+Net: the everyday automatic review runs least-privilege with no bypass; the broad-tool tier is opt-in and unreachable from untrusted PR content.
