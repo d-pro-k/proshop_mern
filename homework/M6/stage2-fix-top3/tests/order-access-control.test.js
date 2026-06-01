@@ -51,9 +51,10 @@ describe('getOrderById — access control (characterization)', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('CURRENT BEHAVIOR: returns another user\'s order to a non-owner (SEC-01 target)', async () => {
-    // Pins the IDOR: any authenticated user can read any order by id.
-    // After the fix this becomes a 403 and the assertions below are updated.
+  it('rejects a non-owner with 403 instead of leaking the order (SEC-01 target)', async () => {
+    // INTENTIONAL BEHAVIOR CHANGE — see fix-2-order-access-control.md.
+    // Pre-fix this test pinned the IDOR (any authenticated user could read any
+    // order). The fix adds an ownership/admin check, so a non-owner is now denied.
     const order = makeOrder(OWNER);
     mockFindByIdReturns(order);
     const req = { params: { id: 'o1' }, user: { _id: OTHER, isAdmin: false } };
@@ -62,8 +63,10 @@ describe('getOrderById — access control (characterization)', () => {
 
     await getOrderById(req, res, next);
 
-    expect(res.json).toHaveBeenCalledWith(order);
-    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).toHaveBeenCalledOnce();
+    expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+    expect(res.json).not.toHaveBeenCalled();
   });
 
   it('returns any order to an admin (non-target)', async () => {
