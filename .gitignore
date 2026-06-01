@@ -9,6 +9,12 @@ node_modules/
 # testing
 /coverage
 
+# mutation testing (Stryker) — transient run dirs and reports
+.stryker-tmp/
+**/.stryker-tmp/
+**/reports/mutation/
+stryker.log
+
 # production
 /frontend/build
 

@@ -4,13 +4,17 @@
   "type": "module",
   "scripts": {
     "ingest": "tsx ingest.ts",
-    "query": "tsx query.ts"
+    "query": "tsx query.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.15.1"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/vitest-runner": "^9.6.1",
     "@types/node": "^24.0.0",
-    "tsx": "^4.19.0"
+    "tsx": "^4.19.0",
+    "vitest": "^4.1.7"
   }
 }

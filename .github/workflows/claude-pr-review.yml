@@ -1,0 +1,187 @@
+# Claude PR Review — GitHub Actions workflow
+#
+# Two tiers:
+#   - Default (single agent): runs on every PR open/sync, cheap, reliable (Sonnet 4.6)
+#   - Agent Team (label "deep-review" or manual dispatch): full team review (Opus 4.8)
+#
+# Setup:
+#   1. This file lives in .github/workflows/
+#   2. GitHub → Settings → Secrets → Actions → add ANTHROPIC_API_KEY
+#   3. Create labels: deep-review (triggers Agent Team), skip-review (skips all review)
+#   4. Open any PR against master → see Claude comments in 3-5 min
+#
+# Cost (per PR):
+#   - Default mode: $0.04-0.30 (Sonnet 4.6, single agent)
+#   - Agent Team mode: $0.50-2 (Opus 4.8, 3 mates in parallel)
+#
+# Docs:
+#   - https://github.com/anthropics/claude-code-action
+#   - https://docs.anthropic.com/en/docs/build-with-claude/claude-code
+
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+    branches: [main, master]
+
+  # Manual trigger via GitHub Actions UI (for deep review on demand)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Review mode (single / agent-team)'
+        required: true
+        default: 'single'
+        type: choice
+        options:
+          - single
+          - agent-team
+      pr_number:
+        description: 'PR number to review'
+        required: true
+
+jobs:
+  # ===================================================================
+  # Tier 1: Single Claude agent (default for every PR)
+  # Cheap, fast, high reliability. Production default.
+  # ===================================================================
+  review-single:
+    name: Single Claude Review
+    # Runs on every PR open/sync, UNLESS label "deep-review" or "skip-review" is present
+    if: |
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'deep-review') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-review')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 is CRITICAL — without it Claude can't compare against base branch
+          fetch-depth: 0
+
+      - name: Claude PR Review (single agent)
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are reviewing PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
+
+            Read `AGENTS.md` (and `CLAUDE.md` which delegates to it) for project context.
+            Read `docs/adr/*` for architectural decisions.
+
+            Review the PR diff focusing on:
+            1. **Security**: OWASP Top 10, hardcoded secrets, auth bypass, injection
+            2. **Architecture**: layer violations, ADR compliance, breaking API changes
+            3. **Performance**: N+1 queries, blocking I/O, memory leaks, missing caching
+            4. **Logic**: edge cases, error handling, off-by-one, race conditions
+
+            Skip:
+            - Code style/formatting (linter handles)
+            - Tests with intentional anti-patterns
+            - Generated files / migrations / vendored deps
+
+            For each finding:
+            - Use mcp__github_inline_comment__create_inline_comment for line-specific issues
+            - Severity: HIGH (blocking) / MEDIUM (should fix) / LOW (nice to have)
+
+            At the end, post a single summary comment grouping all findings by severity.
+            If no issues found, post: "✅ Claude review complete — no blocking issues found."
+          claude_args: >-
+            --model claude-sonnet-4-6
+            --max-turns 8
+            --max-tokens 4096
+
+  # ===================================================================
+  # Tier 2: Agent Team (deep review)
+  # Triggered by:
+  #   - Adding label "deep-review" to a PR, OR
+  #   - Manual workflow_dispatch with mode=agent-team
+  # Expensive but deep — uses 3 specialist mates in parallel.
+  # ===================================================================
+  review-agent-team:
+    name: Agent Team Deep Review
+    if: |
+      (github.event_name == 'pull_request' &&
+       github.event.action == 'labeled' &&
+       github.event.label.name == 'deep-review') ||
+      (github.event_name == 'workflow_dispatch' &&
+       github.event.inputs.mode == 'agent-team')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 20
+    env:
+      # CRITICAL: this env var enables Agent Teams in CC.
+      # Without it, the "spawn agent team" prompt just spawns ONE sub-agent.
+      CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify agent definitions exist
+        run: |
+          if [ ! -d ".claude/agents" ]; then
+            echo "❌ .claude/agents/ folder not found. Cannot spawn Agent Team."
+            echo "   Expected security-mate.md, architecture-mate.md, performance-mate.md"
+            echo "   committed under .claude/agents/."
+            exit 1
+          fi
+          echo "✅ Agent definitions:"
+          ls -la .claude/agents/
+
+      - name: Claude Agent Team Review (Opus 4.8)
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are the LEAD coordinator for an Agent Team PR review.
+
+            PR: #${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+            Repo: ${{ github.repository }}
+
+            Spawn 3 teammates using sub-agent definitions from `.claude/agents/`:
+              - security-mate
+              - architecture-mate
+              - performance-mate
+
+            Each teammate works in parallel, reads the PR diff via `gh pr diff`,
+            and writes findings as JSON lines to `.agent-team-reports/<mate>-findings.jsonl`.
+
+            Teammates may use peer-to-peer mailbox at `.claude/teams/{team-id}/inboxes/`
+            to ask each other questions about cross-category findings.
+
+            Wait for all 3 teammates to finish. Then:
+
+            1. Read all 3 JSONL reports + any cross-mate inbox traffic
+            2. Synthesize into single report at `.agent-team-reports/synthesis.md`:
+               - Group findings by SEVERITY (HIGH / MEDIUM / LOW)
+               - Within each severity, group by file:line for related findings
+               - Highlight cross-mate collaborations (e.g. "security-mate + architecture-mate found same issue")
+            3. Post inline comments via mcp__github_inline_comment__create_inline_comment for each finding
+            4. Post final summary comment in PR with:
+               - Stats per mate (findings count, severity breakdown)
+               - Top 3 HIGH issues with file:line
+               - Mailbox traffic summary (how many cross-mate messages exchanged)
+               - Token usage estimate (for cost awareness)
+          claude_args: >-
+            --model claude-opus-4-8
+            --max-turns 20
+            --max-tokens 12000
+
+      - name: Upload reports as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-team-reports-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          path: .agent-team-reports/
+          retention-days: 30
