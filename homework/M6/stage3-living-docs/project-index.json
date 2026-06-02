@@ -1,0 +1,678 @@
+{
+  "name": "proshop_mern",
+  "type": "mixed-monorepo",
+  "description": "Legacy MERN ecommerce app (Express/Mongoose API + Create React App SPA) extended with two MCP servers, a RAG retrieval pipeline, and a JSON-backed feature-flags layer.",
+  "tech_stack": {
+    "backend": "Node.js (ESM) + Express ^4.17.1 + Mongoose ^8.22.1",
+    "auth": "jsonwebtoken ^8.5.1 + bcryptjs ^2.4.3 (JWT bearer, HS256)",
+    "frontend": "React 16.13 + Redux + Redux Thunk + React Router v5 (CRA react-scripts 3.4.3)",
+    "mcp_servers": "@modelcontextprotocol/sdk ^1.29 + zod ^3.25 (TypeScript)",
+    "retrieval": "Qdrant (@qdrant/js-client-rest ^1.15) + Ollama bge-m3 embeddings + BM25 + cross-encoder rerank (Python)",
+    "database": "MongoDB",
+    "testing": "Vitest ^4.1.7 + Stryker ^9.6.1 (mutation); supertest for backend HTTP",
+    "tooling": "Docker Compose; concurrently; nodemon"
+  },
+  "subprojects": {
+    "backend": {
+      "path": "backend/",
+      "description": "Express/Mongoose REST API: products, users, orders, uploads, auth, PayPal config, feature-flag reads.",
+      "entry": "backend/server.js",
+      "tech": "Express + Mongoose (Node ESM)",
+      "key_paths": {
+        "routes": "backend/routes/",
+        "controllers": "backend/controllers/",
+        "models": "backend/models/",
+        "auth_middleware": "backend/middleware/authMiddleware.js",
+        "db_config": "backend/config/db.js",
+        "jwt_helper": "backend/utils/generateToken.js",
+        "feature_flags_store": "backend/features.json",
+        "seeder": "backend/seeder.js"
+      }
+    },
+    "frontend": {
+      "path": "frontend/",
+      "description": "Create React App SPA: shopping cart, checkout, profile, and admin workflows.",
+      "entry": "frontend/src/index.js",
+      "tech": "React 16 + Redux + Thunk + React Router v5 (CRA 3.4.3)",
+      "key_paths": {
+        "routing": "frontend/src/App.js",
+        "store": "frontend/src/store.js",
+        "actions": "frontend/src/actions/",
+        "reducers": "frontend/src/reducers/",
+        "constants": "frontend/src/constants/",
+        "screens": "frontend/src/screens/",
+        "components": "frontend/src/components/"
+      }
+    },
+    "feature-flags-mcp": {
+      "path": "mcp/feature-flags/",
+      "description": "MCP server: canonical writer for backend/features.json (validation, traffic rollout, atomic writes).",
+      "entry": "mcp/feature-flags/src/index.ts",
+      "tech": "TypeScript + MCP SDK + zod",
+      "key_paths": {
+        "source": "mcp/feature-flags/src/index.ts",
+        "tests": "mcp/feature-flags/test/",
+        "build_output": "mcp/feature-flags/dist/"
+      }
+    },
+    "search-docs-mcp": {
+      "path": "mcp/search-docs/",
+      "description": "MCP server: semantic search over the documentation corpus via Qdrant (served dense-only).",
+      "entry": "mcp/search-docs/src/index.ts",
+      "tech": "TypeScript + MCP SDK + Qdrant client",
+      "key_paths": {
+        "source": "mcp/search-docs/src/index.ts",
+        "tests": "mcp/search-docs/test/"
+      }
+    },
+    "rag": {
+      "path": "rag/",
+      "description": "Retrieval pipeline CLIs: ingest, dense query, hybrid (dense+BM25 RRF), and hybrid+cross-encoder rerank.",
+      "entry": "rag/query.ts",
+      "tech": "TypeScript (tsx) + Qdrant client + Python reranker",
+      "key_paths": {
+        "ingest": "rag/ingest.ts",
+        "ingest_hybrid": "rag/ingest-hybrid.ts",
+        "dense_query": "rag/query.ts",
+        "hybrid": "rag/hybrid.ts",
+        "hybrid_rerank": "rag/hybrid-rerank.ts",
+        "bm25": "rag/bm25.ts",
+        "reranker": "rag/rerank.ts",
+        "reranker_python": "rag/rerank.py",
+        "corpus": "rag/docs-corpus/"
+      }
+    }
+  },
+  "system_folders": {
+    "uploads/": "User-uploaded and sample product images served as static assets.",
+    "docs/": "Reference documentation: architecture overview, module specs, ADRs (start at docs/README.md).",
+    "docs/adr/": "Architecture Decision Records (0001-0005). Numbering is preserved; never restart.",
+    "docs/specs/": "Reverse-engineered per-module specifications.",
+    "docs-archived-2026-06-01/": "Superseded documentation kept for history (e.g. the earlier FINDINGS.md table).",
+    "design-system/": "Machine-readable design tokens (tokens.json, globals.css) backing DESIGN.md.",
+    "rag/docs-corpus/": "Documentation corpus indexed by the search-docs MCP. Retrieval input data, NOT docs about this repo.",
+    ".github/workflows/": "CI: automated cloud code review on pull requests.",
+    ".claude/": "Agent configuration: subagents (agents/) and the project-index update script (scripts/).",
+    "qdrant_storage/": "Local Qdrant vector-store data (collections proshop_docs, proshop_docs_hybrid)."
+  },
+  "root_files": {
+    "package.json": "Root scripts + backend dependencies (type: module).",
+    "vitest.config.js": "Backend HTTP test configuration (with supertest).",
+    "docker-compose.yml": "Local stack: mongo + backend (5001) + frontend (3000).",
+    "Procfile": "Heroku process definition.",
+    ".env.example": "Template for required local environment variables.",
+    "AGENTS.md": "Conventions, guardrails, and repo navigation for contributors and agents.",
+    "README.md": "Setup, environment, and run instructions.",
+    "DESIGN.md": "Visual design language (palette, type, spacing, components, states).",
+    "report.md": "Project work report.",
+    "project-index.json": "This file — the machine-readable repo map. Read first."
+  },
+  "hard_rules": [
+    "ALWAYS read project-index.json FIRST at session start.",
+    "For any question about project functionality, features, architecture, ADRs, runbooks, or incidents, call the search-docs MCP `search_project_docs` tool before falling back to grep+read.",
+    "Change feature-flag state only through the feature-flags MCP tools; never edit backend/features.json directly.",
+    "Keep backend local imports explicit with the .js extension — Node ESM resolution requires it.",
+    "Do not modernize dependencies or change architecture (Next.js, Vite, TypeScript, Redux Toolkit) during docs or small fixes; isolate and verify upgrades separately.",
+    "Do not change public route URLs, API response shapes, or Redux state shape without documenting the compatibility impact.",
+    "Never commit .env, secrets, or real PayPal/DB credentials.",
+    "All UI work must comply with DESIGN.md and design-system/ tokens."
+  ],
+  "ai_routing": {
+    "project functionality / features / runbooks / incidents": "search-docs MCP tool `search_project_docs` (corpus under rag/docs-corpus/)",
+    "feature flag status or changes": "feature-flags MCP tools (get_feature_info / list_features / set_feature_state / adjust_traffic_rollout)",
+    "runtime architecture / data flow": "docs/architecture/overview.md",
+    "module behavior / edge cases / decision logic": "docs/specs/<module>-spec.md",
+    "architecture decisions and rationale": "docs/adr/",
+    "setup / environment / how to run": "README.md",
+    "conventions / guardrails / what-not-to-do": "AGENTS.md",
+    "visual design / tokens / components": "DESIGN.md + design-system/",
+    "known risks / security & performance findings": "homework/M6/stage1-code-review/synthesis.md"
+  },
+  "filesystem_tree": {
+    ".": [
+      ".claude",
+      ".env.example",
+      ".github",
+      ".gitignore",
+      ".mcp.json",
+      "AGENTS.md",
+      "DESIGN.md",
+      "Procfile",
+      "README.md",
+      "backend",
+      "design-system",
+      "docker-compose.yml",
+      "docs",
+      "docs-archived-2026-06-01",
+      "experiments",
+      "frontend",
+      "homework",
+      "mcp",
+      "package-lock.json",
+      "package.json",
+      "project-index.json",
+      "rag",
+      "report.md",
+      "vitest.config.js"
+    ],
+    "frontend": [
+      "README.md",
+      "package-lock.json",
+      "package.json",
+      "public",
+      "src"
+    ],
+    "frontend/public": [
+      "favicon.ico",
+      "images",
+      "index.html",
+      "logo192.png",
+      "logo512.png",
+      "manifest.json",
+      "robots.txt"
+    ],
+    "frontend/public/images": [
+      "airpods.jpg",
+      "alexa.jpg",
+      "camera.jpg",
+      "mouse.jpg",
+      "phone.jpg",
+      "playstation.jpg",
+      "sample.jpg"
+    ],
+    "frontend/src": [
+      "App.js",
+      "actions",
+      "bootstrap.min.css",
+      "components",
+      "constants",
+      "experiments",
+      "index.css",
+      "index.js",
+      "reducers",
+      "screens",
+      "serviceWorker.js",
+      "store.js",
+      "styles"
+    ],
+    "frontend/src/experiments": [
+      "characterization"
+    ],
+    "frontend/src/experiments/characterization": [],
+    "frontend/src/constants": [
+      "cartConstants.js",
+      "featureFlagConstants.js",
+      "orderConstants.js",
+      "productConstants.js",
+      "userConstants.js"
+    ],
+    "frontend/src/screens": [
+      "CartScreen.js",
+      "DashboardFeaturesScreen.js",
+      "HomeScreen.js",
+      "LoginScreen.js",
+      "OrderListScreen.js",
+      "OrderScreen.js",
+      "PaymentScreen.js",
+      "PlaceOrderScreen.js",
+      "ProductEditScreen.js",
+      "ProductListScreen.js",
+      "ProductScreen.js",
+      "ProfileScreen.js",
+      "RegisterScreen.js",
+      "ShippingScreen.js",
+      "UserEditScreen.js",
+      "UserListScreen.js",
+      "admin",
+      "storefront"
+    ],
+    "frontend/src/screens/storefront": [
+      "CartItem.jsx",
+      "CartItem.module.css",
+      "CartScreen.jsx",
+      "CartScreen.module.css",
+      "HomeScreen.jsx",
+      "HomeScreen.module.css",
+      "ProductCard.jsx",
+      "ProductCard.module.css",
+      "ProductCarousel.jsx",
+      "ProductCarousel.module.css",
+      "ProductScreen.jsx",
+      "ProductScreen.module.css"
+    ],
+    "frontend/src/screens/admin": [
+      "FeatureFlagsScreen.jsx",
+      "FeatureFlagsScreen.module.css",
+      "OrderListScreen.jsx",
+      "OrderListScreen.module.css",
+      "ProductListScreen.jsx",
+      "ProductListScreen.module.css",
+      "UserListScreen.jsx",
+      "UserListScreen.module.css",
+      "hooks"
+    ],
+    "frontend/src/styles": [
+      "design-tokens.css"
+    ],
+    "frontend/src/components": [
+      "AutoPilotControls.jsx",
+      "AutoPilotControls.module.css",
+      "CheckoutSteps.js",
+      "Footer.js",
+      "Footer.module.css",
+      "FormContainer.js",
+      "Header.js",
+      "Header.module.css",
+      "Loader.js",
+      "Message.js",
+      "Meta.js",
+      "Paginate.js",
+      "Product.js",
+      "ProductCarousel.js",
+      "Rating.js",
+      "SearchBox.js",
+      "SearchBox.module.css",
+      "icons.jsx"
+    ],
+    "frontend/src/actions": [
+      "cartActions.js",
+      "featureFlagActions.js",
+      "orderActions.js",
+      "productActions.js",
+      "userActions.js"
+    ],
+    "frontend/src/reducers": [
+      "cartReducers.js",
+      "featureFlagReducers.js",
+      "orderReducers.js",
+      "productReducers.js",
+      "userReducers.js"
+    ],
+    "experiments": [
+      "characterization"
+    ],
+    "experiments/characterization": [
+      "characterization.test.js",
+      "original.js",
+      "refactored.js",
+      "reflection.md"
+    ],
+    ".claude": [
+      "agents",
+      "launch.json",
+      "scripts",
+      "settings.json",
+      "settings.local.json",
+      "worktrees"
+    ],
+    ".claude/agents": [
+      "architecture-mate.md",
+      "legacy-auditor-mate.md",
+      "performance-mate.md",
+      "security-mate.md",
+      "templates",
+      "test-writer-mate.md",
+      "ui-reviewer.md"
+    ],
+    ".claude/agents/templates": [
+      "docs-audit.template.md"
+    ],
+    ".claude/worktrees": [],
+    ".claude/scripts": [
+      "update_project_index.py"
+    ],
+    "backend": [
+      "config",
+      "controllers",
+      "data",
+      "features.json",
+      "middleware",
+      "models",
+      "routes",
+      "seeder.js",
+      "server.js",
+      "utils"
+    ],
+    "backend/middleware": [
+      "authMiddleware.js",
+      "errorMiddleware.js"
+    ],
+    "backend/config": [
+      "db.js"
+    ],
+    "backend/utils": [
+      "generateToken.js"
+    ],
+    "backend/models": [
+      "orderModel.js",
+      "productModel.js",
+      "userModel.js"
+    ],
+    "backend/controllers": [
+      "featureFlagController.js",
+      "orderController.js",
+      "productController.js",
+      "userController.js"
+    ],
+    "backend/data": [
+      "products.js",
+      "users.js"
+    ],
+    "backend/routes": [
+      "featureFlagRoutes.js",
+      "orderRoutes.js",
+      "productRoutes.js",
+      "uploadRoutes.js",
+      "userRoutes.js"
+    ],
+    "mcp": [
+      "feature-flags",
+      "search-docs"
+    ],
+    "mcp/feature-flags": [
+      ".gitignore",
+      "package-lock.json",
+      "package.json",
+      "smoke-test.mjs",
+      "src",
+      "stryker.conf.json",
+      "test",
+      "tsconfig.json",
+      "vitest.config.ts"
+    ],
+    "mcp/feature-flags/test": [
+      "smoke.test.ts"
+    ],
+    "mcp/feature-flags/src": [
+      "index.ts"
+    ],
+    "mcp/search-docs": [
+      ".gitignore",
+      "package-lock.json",
+      "package.json",
+      "smoke-test.mjs",
+      "src",
+      "stryker.conf.json",
+      "test",
+      "tsconfig.json",
+      "vitest.config.ts"
+    ],
+    "mcp/search-docs/test": [
+      "smoke.test.ts"
+    ],
+    "mcp/search-docs/src": [
+      "index.ts"
+    ],
+    "docs": [
+      "README.md",
+      "adr",
+      "architecture",
+      "specs"
+    ],
+    "docs/adr": [
+      "0001-use-split-mern-application.md",
+      "0002-use-redux-thunk-and-localstorage-for-client-state.md",
+      "0003-use-jwt-bearer-auth-with-admin-middleware.md",
+      "0004-retrieval-via-mcp-over-qdrant.md",
+      "0005-feature-flags-as-json-with-mcp-writer.md"
+    ],
+    "docs/specs": [
+      "auth-spec.md",
+      "catalog-spec.md",
+      "client-state-spec.md",
+      "feature-flags-spec.md",
+      "orders-spec.md",
+      "retrieval-spec.md"
+    ],
+    "docs/architecture": [
+      "overview.md"
+    ],
+    "rag": [
+      "bm25.ts",
+      "chunks.jsonl",
+      "docs-corpus",
+      "hybrid-rerank.ts",
+      "hybrid.ts",
+      "ingest-hybrid.ts",
+      "ingest.ts",
+      "package-lock.json",
+      "package.json",
+      "query.ts",
+      "rerank.py",
+      "rerank.ts",
+      "stryker.conf.json",
+      "test",
+      "tsconfig.json",
+      "vitest.config.ts"
+    ],
+    "rag/test": [
+      "smoke.test.ts"
+    ],
+    "rag/docs-corpus": [
+      "adrs",
+      "api",
+      "architecture.md",
+      "best-practices.md",
+      "dev-history.md",
+      "feature-flags-spec.md",
+      "features",
+      "features-analysis-ru.md",
+      "features.json",
+      "glossary.md",
+      "incidents",
+      "pages",
+      "runbooks"
+    ],
+    "rag/docs-corpus/features": [
+      "admin.md",
+      "auth.md",
+      "cart.md",
+      "catalog.md",
+      "checkout.md",
+      "payments.md"
+    ],
+    "rag/docs-corpus/runbooks": [
+      "ab-test-setup.md",
+      "db-seed-and-reset.md",
+      "deploy.md",
+      "feature-flag-toggle.md",
+      "incident-response.md",
+      "local-setup.md"
+    ],
+    "rag/docs-corpus/api": [
+      "auth.md",
+      "orders.md",
+      "products.md",
+      "uploads.md",
+      "users.md"
+    ],
+    "rag/docs-corpus/adrs": [
+      "adr-001-mongodb-vs-postgres.md",
+      "adr-002-redux-vs-context.md",
+      "adr-003-jwt-vs-session.md",
+      "adr-004-paypal-vs-stripe.md",
+      "adr-005-bootstrap-vs-tailwind.md"
+    ],
+    "rag/docs-corpus/pages": [
+      "INDEX.md",
+      "admin-orders.md",
+      "admin-product-edit.md",
+      "admin-products.md",
+      "admin-user-edit.md",
+      "admin-users.md",
+      "cart.md",
+      "home.md",
+      "login.md",
+      "order.md",
+      "payment.md",
+      "place-order.md",
+      "product.md",
+      "profile.md",
+      "register.md",
+      "shipping.md"
+    ],
+    "rag/docs-corpus/incidents": [
+      "i-001-paypal-double-charge.md",
+      "i-002-mongo-connection-pool-exhaustion.md",
+      "i-003-jwt-secret-leak.md"
+    ],
+    "homework": [
+      "M4",
+      "M5",
+      "M6"
+    ],
+    "homework/M6": [
+      "cloud-review",
+      "cloud-review-comparison.md",
+      "stage1-code-review",
+      "stage2-fix-top3",
+      "stage3-living-docs",
+      "stage4-tests-agent"
+    ],
+    "homework/M6/stage4-tests-agent": [
+      ".gitkeep"
+    ],
+    "homework/M6/stage2-fix-top3": [
+      "fix-1-payment-authorization.md",
+      "fix-2-order-access-control.md",
+      "fix-3-jwt-algorithm-allowlist.md",
+      "fix-4-feature-flags-auth.md",
+      "tests"
+    ],
+    "homework/M6/stage2-fix-top3/tests": [
+      "feature-flags-auth.test.js",
+      "jwt-algorithm-allowlist.test.js",
+      "order-access-control.test.js",
+      "payment-authorization.test.js"
+    ],
+    "homework/M6/stage3-living-docs": [
+      "00-plan.md",
+      "AGENTS.md",
+      "docs-archived",
+      "docs-audit.md",
+      "docs-new",
+      "hook-screenshot.png",
+      "project-index.json",
+      "stage3-synthesis.md",
+      "update_project_index.py"
+    ],
+    "homework/M6/stage3-living-docs/docs-archived": [
+      "FINDINGS.md"
+    ],
+    "homework/M6/stage3-living-docs/docs-new": [
+      "README.md",
+      "adr",
+      "architecture",
+      "specs"
+    ],
+    "homework/M6/stage1-code-review": [
+      "architecture-findings.jsonl",
+      "architecture-review.md",
+      "performance-findings.jsonl",
+      "performance-review.md",
+      "security-findings.jsonl",
+      "security-review.md",
+      "synthesis.md"
+    ],
+    "homework/M6/cloud-review": [
+      "opus-single.md",
+      "opus-team.md",
+      "sonnet-single.md"
+    ],
+    "homework/M5": [
+      "README.md",
+      "dashboard-autopilot-1-check.png",
+      "dashboard-autopilot-2-test.png",
+      "dashboard-autopilot-3-rollback.png",
+      "hitl-screenshot.png",
+      "langfuse-trace-wf1.json",
+      "langfuse-trace-wf2.json",
+      "logs.json",
+      "simulate_wf1.py",
+      "simulate_wf2.py",
+      "telegram-alerts.png",
+      "trace-wf1.png",
+      "trace-wf2-toggle.png",
+      "wf1-manual-trigger.json",
+      "wf1-manual-trigger.langfuse.json",
+      "wf2-executions-list.png",
+      "wf2-scheduled-monitor.json",
+      "wf2-scheduled-monitor.langfuse.json"
+    ],
+    "homework/M4": [
+      "README.md",
+      "analysis.md",
+      "pixel-perfect",
+      "qa-reflection.md",
+      "screenshots",
+      "selection-mode-demo.md",
+      "ui-review.md"
+    ],
+    "homework/M4/screenshots": [
+      "before",
+      "dashboard",
+      "feature-flags-dashboard.png",
+      "file-tree.png",
+      "redesign"
+    ],
+    "homework/M4/screenshots/dashboard": [
+      "selection-mode-after.png",
+      "selection-mode-before.png"
+    ],
+    "homework/M4/screenshots/redesign": [
+      ".gitkeep",
+      "cart.png",
+      "home.png",
+      "order-list.png",
+      "product-list.png",
+      "product.png",
+      "user-list.png"
+    ],
+    "homework/M4/screenshots/before": [
+      ".gitkeep",
+      "cart.png",
+      "home.png",
+      "order-list.png",
+      "product-list.png",
+      "product.png",
+      "user-list.png"
+    ],
+    "homework/M4/pixel-perfect": [
+      ".gitignore",
+      "close-the-loop-demo.md",
+      "current-dashboard.png",
+      "package-lock.json",
+      "package.json",
+      "playwright.config.js",
+      "reference",
+      "screenshot-dashboard.spec.js",
+      "test-results",
+      "verify-report-baseline.md",
+      "verify-report-post-fix.md",
+      "verify-report-regression.md",
+      "verify-report.md",
+      "verify.js"
+    ],
+    "homework/M4/pixel-perfect/test-results": [
+      ".last-run.json"
+    ],
+    "homework/M4/pixel-perfect/reference": [
+      "dashboard-reference.png"
+    ],
+    ".github": [
+      "workflows"
+    ],
+    ".github/workflows": [
+      "claude-pr-review.yml"
+    ],
+    "design-system": [
+      "README.md",
+      "globals.css",
+      "tokens.json"
+    ],
+    "docs-archived-2026-06-01": [
+      "FINDINGS.md"
+    ]
+  },
+  "last_updated": "2026-06-02T01:51:16.740755+00:00"
+}
