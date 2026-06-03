@@ -476,13 +476,13 @@
     ],
     "homework/M6": [
       "cloud-review",
-      "cloud-review-comparison.md",
       "stage1-code-review",
       "stage2-fix-top3",
       "stage3-living-docs",
       "stage4-tests-agent"
     ],
     "homework/M6/cloud-review": [
+      "comparison.md",
       "opus-single.md",
       "opus-team.md",
       "sonnet-single.md"
@@ -530,7 +530,23 @@
       "specs"
     ],
     "homework/M6/stage4-tests-agent": [
-      ".gitkeep"
+      "README.md",
+      "coverage-report.md",
+      "final_msi.txt",
+      "service-1-tests",
+      "service-2-tests",
+      "service-3-tests",
+      "starting_msi.txt",
+      "test-writer-mate.md"
+    ],
+    "homework/M6/stage4-tests-agent/service-1-tests": [
+      "logic.test.ts"
+    ],
+    "homework/M6/stage4-tests-agent/service-2-tests": [
+      "logic.test.ts"
+    ],
+    "homework/M6/stage4-tests-agent/service-3-tests": [
+      "bm25.test.ts"
     ],
     "mcp": [
       "feature-flags",
@@ -548,9 +564,11 @@
       "vitest.config.ts"
     ],
     "mcp/feature-flags/src": [
-      "index.ts"
+      "index.ts",
+      "logic.ts"
     ],
     "mcp/feature-flags/test": [
+      "logic.test.ts",
       "smoke.test.ts"
     ],
     "mcp/search-docs": [
@@ -565,9 +583,11 @@
       "vitest.config.ts"
     ],
     "mcp/search-docs/src": [
-      "index.ts"
+      "index.ts",
+      "logic.ts"
     ],
     "mcp/search-docs/test": [
+      "logic.test.ts",
       "smoke.test.ts"
     ],
     "rag": [
@@ -657,6 +677,7 @@
       "local-setup.md"
     ],
     "rag/test": [
+      "bm25.test.ts",
       "smoke.test.ts"
     ],
     "uploads": [
@@ -664,5 +685,5 @@
       "file.txt"
     ]
   },
-  "last_updated": "2026-06-02T02:10:18.568686+00:00"
+  "last_updated": "2026-06-03T01:48:08.664051+00:00"
 }
