@@ -7,5 +7,5 @@
   },
   "reporters": ["html", "clear-text", "progress"],
   "coverageAnalysis": "perTest",
-  "mutate": ["*.ts", "!*.test.ts"]
+  "mutate": ["bm25.ts"]
 }

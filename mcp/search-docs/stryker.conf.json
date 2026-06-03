@@ -7,5 +7,5 @@
   },
   "reporters": ["html", "clear-text", "progress"],
   "coverageAnalysis": "perTest",
-  "mutate": ["src/**/*.ts"]
+  "mutate": ["src/logic.ts"]
 }

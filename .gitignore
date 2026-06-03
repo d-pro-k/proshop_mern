@@ -8,6 +8,7 @@ node_modules/
 
 # testing
 /coverage
+**/coverage/
 
 # mutation testing (Stryker) — transient run dirs and reports
 .stryker-tmp/

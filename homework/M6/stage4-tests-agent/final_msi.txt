@@ -1,0 +1,30 @@
+Final mutation score (MSI) — after the strengthening pass.
+Tool: Stryker (vitest runner), coverageAnalysis perTest.
+
+Service        Mutated file    Killed  Timeout  Survived  Total   MSI       Target
+-------------  --------------  ------  -------  --------  -----   -------    ------
+feature-flags  src/logic.ts       134        0         1    135   99.26%    > 70% ✓
+search-docs    src/logic.ts        58        0         0     58  100.00%    > 70% ✓
+rag            bm25.ts             82        1         9     92   90.22%    > 70% ✓
+
+Strengthening pass
+- Only rag needed one. A parametrised test asserting that EVERY multi-character
+  stop word (English + Russian, length >= 2), passed alone, tokenises to an empty
+  sparse vector pins each STOP_WORDS entry individually. A companion sanity test
+  ("the failover is on the checkout" -> two content tokens, frequency 1) prevents
+  the suite from passing vacuously. MSI 40.22% -> 90.22%.
+- feature-flags / search-docs were already above target at baseline; nothing to
+  improve beyond the lone equivalent mutant noted below.
+
+Remaining survivors are all EQUIVALENT mutants (cannot be killed without changing
+production code):
+- feature-flags (1): ConditionalExpression at src/logic.ts:56
+    if (!feature.dependencies || feature.dependencies.length === 0) return []  ->  ... || false
+  With an empty dependencies array, both the early return and the zero-iteration
+  for-loop yield []; outputs are identical for every input.
+- search-docs (0): none.
+- rag (9): 8 StringLiteral mutants on the single-character stop words ('a' and
+  Russian 'и','в','с','к','у','о','а') — these tokens are already dropped by the
+  length>=2 rule, so stop-word membership is unobservable; plus 1 Regex mutant on
+  the whitespace split (bm25.ts:15) — empty tokens it could introduce are removed
+  by the same length>=2 filter.

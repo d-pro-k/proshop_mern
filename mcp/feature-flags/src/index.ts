@@ -4,21 +4,15 @@ import { z } from 'zod'
 import { readFile, writeFile, rename } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-
-type Status = 'Disabled' | 'Testing' | 'Enabled'
-
-interface Feature {
-  name: string
-  description: string
-  status: Status
-  traffic_percentage: number
-  last_modified: string
-  targeted_segments?: string[]
-  rollout_strategy?: 'canary' | 'ab_test' | 'full_release'
-  dependencies?: string[]
-}
-
-type FeaturesFile = Record<string, Feature>
+import {
+  type FeaturesFile,
+  type OpError,
+  type Status,
+  adjustTrafficRollout,
+  getFeatureInfo,
+  listFeatures,
+  setFeatureState,
+} from './logic.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FEATURES_PATH =
@@ -38,39 +32,6 @@ const writeFlags = async (flags: FeaturesFile): Promise<void> => {
   const tmp = `${FEATURES_PATH}.tmp`
   await writeFile(tmp, JSON.stringify(flags, null, 2) + '\n', 'utf-8')
   await rename(tmp, FEATURES_PATH)
-}
-
-const VALID_STATES: Status[] = ['Disabled', 'Testing', 'Enabled']
-
-const canonicalTrafficForState = (state: Status, current: number): number => {
-  if (state === 'Disabled') return 0
-  if (state === 'Enabled') return 100
-  // Testing: keep current if it's a sane canary value, else default to 10.
-  return current >= 1 && current <= 99 ? current : 10
-}
-
-const dependencyWarnings = (
-  feature: Feature,
-  feature_id: string,
-  flags: FeaturesFile,
-): string[] => {
-  if (!feature.dependencies || feature.dependencies.length === 0) return []
-  const warnings: string[] = []
-  for (const depId of feature.dependencies) {
-    const dep = flags[depId]
-    if (!dep) {
-      warnings.push(
-        `Dependency '${depId}' is referenced by '${feature_id}' but not found in features.json.`,
-      )
-      continue
-    }
-    if (dep.status !== 'Enabled') {
-      warnings.push(
-        `Dependency '${depId}' is in status '${dep.status}', not 'Enabled'. ${feature_id} may not function correctly.`,
-      )
-    }
-  }
-  return warnings
 }
 
 const ok = (payload: unknown) => ({
@@ -94,6 +55,8 @@ const err = (
   ],
   isError: true,
 })
+
+const errFromOp = (e: OpError) => err(e.code, e.message, e.feature_id)
 
 const safeRead = async () => {
   try {
@@ -149,15 +112,9 @@ server.registerTool(
   async ({ feature_id }) => {
     const r = await safeRead()
     if (!r.ok) return r.error
-    const feature = r.flags[feature_id]
-    if (!feature) {
-      return err(
-        'FEATURE_NOT_FOUND',
-        `No feature with ID '${feature_id}' exists in features.json.`,
-        feature_id,
-      )
-    }
-    return ok({ feature_id, ...feature })
+    const res = getFeatureInfo(r.flags, feature_id)
+    if (!res.ok) return errFromOp(res.error)
+    return ok(res.value)
   },
 )
 
@@ -197,39 +154,13 @@ server.registerTool(
     },
   },
   async ({ feature_id, state }) => {
-    if (!VALID_STATES.includes(state as Status)) {
-      return err(
-        'INVALID_STATE',
-        `State '${state}' is not valid. Must be one of: Disabled, Testing, Enabled (case-sensitive).`,
-        feature_id,
-      )
-    }
     const r = await safeRead()
     if (!r.ok) return r.error
-    const feature = r.flags[feature_id]
-    if (!feature) {
-      return err(
-        'FEATURE_NOT_FOUND',
-        `No feature with ID '${feature_id}' exists in features.json.`,
-        feature_id,
-      )
-    }
-    const newStatus = state as Status
-    const newTraffic = canonicalTrafficForState(newStatus, feature.traffic_percentage)
-    const updated: Feature = {
-      ...feature,
-      status: newStatus,
-      traffic_percentage: newTraffic,
-      last_modified: today(),
-    }
-    const flags = { ...r.flags, [feature_id]: updated }
-    const w = await safeWrite(flags)
+    const res = setFeatureState(r.flags, feature_id, state as Status, today())
+    if (!res.ok) return errFromOp(res.error)
+    const w = await safeWrite(res.value.flags)
     if (!w.ok) return w.error
-
-    const warnings =
-      newStatus === 'Disabled' ? [] : dependencyWarnings(updated, feature_id, flags)
-
-    return ok({ feature_id, ...updated, warnings })
+    return ok(res.value.payload)
   },
 )
 
@@ -271,47 +202,13 @@ server.registerTool(
     },
   },
   async ({ feature_id, percentage }) => {
-    if (!Number.isInteger(percentage) || percentage < 0 || percentage > 100) {
-      return err(
-        'INVALID_PERCENTAGE',
-        `percentage must be an integer in [0, 100]. Received: ${percentage}.`,
-        feature_id,
-      )
-    }
     const r = await safeRead()
     if (!r.ok) return r.error
-    const feature = r.flags[feature_id]
-    if (!feature) {
-      return err(
-        'FEATURE_NOT_FOUND',
-        `No feature with ID '${feature_id}' exists in features.json.`,
-        feature_id,
-      )
-    }
-    if (feature.status !== 'Testing') {
-      return err(
-        'WRONG_STATUS_FOR_ROLLOUT',
-        `adjust_traffic_rollout can only be called on features with status 'Testing'. '${feature_id}' is currently '${feature.status}'. Use set_feature_state to change its status first.`,
-        feature_id,
-      )
-    }
-    const updated: Feature = {
-      ...feature,
-      traffic_percentage: percentage,
-      last_modified: today(),
-    }
-    const flags = { ...r.flags, [feature_id]: updated }
-    const w = await safeWrite(flags)
+    const res = adjustTrafficRollout(r.flags, feature_id, percentage, today())
+    if (!res.ok) return errFromOp(res.error)
+    const w = await safeWrite(res.value.flags)
     if (!w.ok) return w.error
-
-    let hint: string | null = null
-    if (percentage === 0) {
-      hint = `Consider set_feature_state('${feature_id}', 'Disabled') instead — Testing at 0% is equivalent to off.`
-    } else if (percentage === 100) {
-      hint = `Consider set_feature_state('${feature_id}', 'Enabled') to lock in the full rollout.`
-    }
-
-    return ok({ feature_id, ...updated, hint })
+    return ok(res.value.payload)
   },
 )
 
@@ -335,13 +232,7 @@ server.registerTool(
   async () => {
     const r = await safeRead()
     if (!r.ok) return r.error
-    const summary = Object.entries(r.flags).map(([feature_id, f]) => ({
-      feature_id,
-      name: f.name,
-      status: f.status,
-      traffic_percentage: f.traffic_percentage,
-    }))
-    return ok(summary)
+    return ok(listFeatures(r.flags))
   },
 )
 

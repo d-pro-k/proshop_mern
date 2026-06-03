@@ -1,0 +1,16 @@
+Starting mutation score (MSI) — baseline, before any strengthening pass.
+Tool: Stryker (vitest runner), coverageAnalysis perTest.
+
+Service        Mutated file    Killed  Timeout  Survived  Total   MSI
+-------------  --------------  ------  -------  --------  -----   -------
+feature-flags  src/logic.ts       134        0         1    135   99.26%
+search-docs    src/logic.ts        58        0         0     58  100.00%
+rag            bm25.ts             36        1        55     92   40.22%
+
+Notes
+- feature-flags and search-docs already clear the >70% target at baseline: the
+  generated suites pin every observable behaviour with exact-value assertions.
+- rag starts low (40.22%): the survivors are dominated by StringLiteral mutants
+  on the STOP_WORDS set — each multi-character stop word mutated to "" survived
+  because the baseline exercised only a handful of representative stop words.
+  Addressed in the strengthening pass (see final_msi.txt).
