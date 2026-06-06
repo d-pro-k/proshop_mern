@@ -1,0 +1,165 @@
+[
+  {
+    "createdAt": "2026-06-06T21:47:46.342Z",
+    "message": "What products do you sell?",
+    "piiEntities": [],
+    "piiDetector": "presidio",
+    "route": "cloud",
+    "routeReason": "public query: no PII in text and no personal data needed",
+    "model": "gpt-4o-mini",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 6281,
+    "costUsd": 0.000265,
+    "reply": "Here are some products we sell:\n\n1. [Airpods Wireless Bluetooth Headphones](https://proshop.com/product/69eff61bbabddfc6fe8f2d9d) - $89.99 (Apple)\n2. [iPhone 11 Pro 256GB Memory](https://proshop.com/product/69eff61bbabddfc6fe8f2d9e) - $599.99 (Apple)\n3. [Cannon EOS 80D DSLR Camera](https://proshop.com/product/69eff61bbabddfc6fe8f2d9f) - $929.99 (Cannon) - Out of Stock\n4. [Sony Playstation 4 Pro White Version](https://proshop.com/product/69eff61bbabddfc6fe8f2da0) - $399.99 (Sony)\n5. [Logitech G-Series Gaming Mouse](https://proshop.com/product/69eff61bbabddfc6fe8f2da1) - $49.99 (Logitech)\n6. [Amazon Echo Dot 3rd Generation](https://proshop.com/product/69eff61bbabddfc6fe8f2da2) - $29.99 (Amazon) - Out of Stock\n\nLet me know if you need more information!"
+  },
+  {
+    "createdAt": "2026-06-06T21:47:52.528Z",
+    "message": "Какие товары у вас есть в наличии?",
+    "piiEntities": [],
+    "piiDetector": "presidio",
+    "route": "cloud",
+    "routeReason": "public query: no PII in text and no personal data needed",
+    "model": "gpt-4o-mini",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 4891,
+    "costUsd": 0.000231,
+    "reply": "Вот некоторые товары, которые у нас есть в наличии:\n\n1. [Airpods Wireless Bluetooth Headphones](https://proshop.com/product/69eff61bbabddfc6fe8f2d9d) — $89.99\n2. [iPhone 11 Pro 256GB Memory](https://proshop.com/product/69eff61bbabddfc6fe8f2d9e) — $599.99\n3. [Sony Playstation 4 Pro White Version](https://proshop.com/product/69eff61bbabddfc6fe8f2da0) — $399.99\n4. [Logitech G-Series Gaming Mouse](https://proshop.com/product/69eff61bbabddfc6fe8f2da1) — $49.99\n\nЕсли хотите узнать больше о каком-либо из этих товаров, дайте знать!"
+  },
+  {
+    "createdAt": "2026-06-06T21:47:57.387Z",
+    "message": "Посоветуй беспроводные наушники до $100",
+    "piiEntities": [],
+    "piiDetector": "presidio",
+    "route": "cloud",
+    "routeReason": "public query: no PII in text and no personal data needed",
+    "model": "gpt-4o-mini",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 3060,
+    "costUsd": 0.000185,
+    "reply": "Вот несколько беспроводных наушников до $100:\n\n1. [Airpods Wireless Bluetooth Headphones](https://proshop.com/product/69eff61bbabddfc6fe8f2d9d) - $89.99 от Apple\n\nЕсли нужно больше информации или другой вариант, дайте знать!"
+  },
+  {
+    "createdAt": "2026-06-06T21:49:22.164Z",
+    "message": "Track my order — my email is john@example.com",
+    "piiEntities": [
+      "EMAIL_ADDRESS"
+    ],
+    "piiDetector": "presidio",
+    "route": "local",
+    "routeReason": "PII in message: EMAIL_ADDRESS",
+    "model": "qwen3:8b-q8_0",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 83412,
+    "costUsd": 0,
+    "reply": "Here are your order details:\n\n1. [Order](/order/6a222c75015225f19b3d88b3) - Completed (Delivered on 2026-06-03)\n   - Airpods Wireless Bluetooth Headphones ($89.99)\n   - iPhone 11 Pro 256GB Memory ($599.99)\n\n2. [Order](/order/6a222c75015225f19b3d88b4) - In Transit (Expected soon)\n   - Cannon EOS 80D DSLR Camera ($929.99)\n\nLet me know if you need tracking updates for the second order."
+  },
+  {
+    "createdAt": "2026-06-06T21:49:50.691Z",
+    "message": "Мой email john@example.com — есть новости по моему заказу?",
+    "piiEntities": [
+      "EMAIL_ADDRESS",
+      "PERSON"
+    ],
+    "piiDetector": "presidio",
+    "route": "local",
+    "routeReason": "PII in message: EMAIL_ADDRESS, PERSON",
+    "model": "qwen3:8b-q8_0",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 25789,
+    "costUsd": 0,
+    "reply": "Ваш заказ с ID **6a222c75015225f19b3d88b4** (дата оплаты: 2026-06-04) еще не доставлен. Ожидайте, пока статус не обновится. Для деталей или отслеживания заказа нажмите [здесь](/order/6a222c75015225f19b3d88b4)."
+  },
+  {
+    "createdAt": "2026-06-06T21:50:38.487Z",
+    "message": "Где мой заказ?",
+    "piiEntities": [],
+    "piiDetector": "presidio",
+    "route": "local",
+    "routeReason": "tool sensitivity: needs personal data (PII_SOURCE tool)",
+    "model": "qwen3:8b-q8_0",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 45403,
+    "costUsd": 0,
+    "reply": "Вот ваши заказы:\n\n1. [Заказ 6a222c75015225f19b3d88b3](/order/6a222c75015225f19b3d88b3)  \n   📦 Доставлен: 2026-06-03  \n   🛍️ Товары:  \n   - Airpods Wireless Bluetooth Headphones ($89.99)  \n   - iPhone 11 Pro 256GB Memory ($599.99)  \n   💰 Общая сумма: $793.48  \n\n2. [Заказ 6a222c75015225f19b3d88b4](/order/6a222c75015225f19b3d88b4)  \n   📦 В пути: Ожидается доставка  \n   🛍️ Товары:  \n   - Cannon EOS 80D DSLR Camera ($929.99)  \n   💰 Общая сумма: $1069.49  \n\nХотите детали по конкретному заказу?"
+  },
+  {
+    "createdAt": "2026-06-06T21:51:11.539Z",
+    "message": "Когда приедет моя посылка?",
+    "piiEntities": [
+      "PERSON"
+    ],
+    "piiDetector": "presidio",
+    "route": "local",
+    "routeReason": "PII in message: PERSON",
+    "model": "qwen3:8b-q8_0",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 30196,
+    "costUsd": 0,
+    "reply": "Ваша посылка с заказом [6a222c75015225f19b3d88b3](/order/6a222c75015225f19b3d88b3) уже доставлена (дата получения: 2026-06-03). Второй заказ [6a222c75015225f19b3d88b4](/order/6a222c75015225f19b3d88b4) пока не доставлен. Дата доставки не указана, возможно, требуется проверить статус у перевозчика или связаться с поддержкой."
+  },
+  {
+    "createdAt": "2026-06-06T21:51:51.464Z",
+    "message": "What did I order recently?",
+    "piiEntities": [],
+    "piiDetector": "presidio",
+    "route": "local",
+    "routeReason": "tool sensitivity: needs personal data (PII_SOURCE tool)",
+    "model": "qwen3:8b-q8_0",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 38087,
+    "costUsd": 0,
+    "reply": "Your most recent order (placed on June 4, 2026) includes:  \n- [Cannon EOS 80D DSLR Camera](/product/69eff61bbabddfc6fe8f2d9f) ($929.99)  \nPayment method: PayPal. This order is currently **not delivered**.  \n\nYou also ordered on May 30, 2026:  \n- [Airpods Wireless Bluetooth Headphones](/product/69eff61bbabddfc6fe8f2d9d) ($89.99)  \n- [iPhone 11 Pro 256GB Memory](/product/69eff61bbabddfc6fe8f2d9e) ($599.99)  \nBoth items were delivered by June 3, 2026."
+  },
+  {
+    "createdAt": "2026-06-06T21:51:57.696Z",
+    "message": "Summarize my recent orders and recommend what to buy next",
+    "piiEntities": [],
+    "piiDetector": "presidio",
+    "route": "cloud",
+    "routeReason": "personal data + frontier reasoning -> minimized & masked to cloud",
+    "model": "gpt-4o-mini",
+    "minimized": true,
+    "masked": true,
+    "latencyMs": 4127,
+    "costUsd": 0.000279,
+    "reply": "### Recent Orders Summary for John Doe\n\n1. **Order ID:** 6a222c75015225f19b3d88b3\n   - **Status:** Delivered\n   - **Total Price:** $793.48\n   - **Items:**\n     - [Airpods Wireless Bluetooth Headphones - $89.99](#)\n     - [iPhone 11 Pro 256GB Memory - $599.99](#)\n\n2. **Order ID:** 6a222c75015225f19b3d88b4\n   - **Status:** Paid, Awaiting Delivery\n   - **Total Price:** $1069.49\n   - **Items:**\n     - [Cannon EOS 80D DSLR Camera - $929.99](#)\n\n### Recommendation for Next Purchase\nConsidering your recent purchases, you might be interested in accessories for your new camera or phone. Here are a couple of suggestions:\n\n- **Camera Lenses**: Enhance your photography with additional lenses.\n- **Phone Accessories**: Think about cases, screen protectors, or extra charging cables.\n\nWould you like me to find specific products for either category?"
+  },
+  {
+    "createdAt": "2026-06-06T21:52:05.640Z",
+    "message": "Суммируй мои последние заказы и посоветуй, что купить дальше",
+    "piiEntities": [],
+    "piiDetector": "presidio",
+    "route": "cloud",
+    "routeReason": "personal data + frontier reasoning -> minimized & masked to cloud",
+    "model": "gpt-4o-mini",
+    "minimized": true,
+    "masked": true,
+    "latencyMs": 6096,
+    "costUsd": 0.000287,
+    "reply": "Ваши последние заказы:\n\n1. **Заказ #6a222c75015225f19b3d88b3** (Доставлен)\n   - **Общая стоимость:** $793.48\n   - **Товары:**\n     - [Airpods Wireless Bluetooth Headphones - $89.99](https://example.com/product/airpods)\n     - [iPhone 11 Pro 256GB Memory - $599.99](https://example.com/product/iphone11)\n\n2. **Заказ #6a222c75015225f19b3d88b4** (Оплачен, ожидает доставки)\n   - **Общая стоимость:** $1069.49\n   - **Товары:**\n     - [Cannon EOS 80D DSLR Camera - $929.99](https://example.com/product/cannon-eos)\n\n### Рекомендации по новым покупкам\nС учетом ваших предыдущих заказов, вы можете рассмотреть:\n\n- Дополнительные аксессуары для вашего **iPhone** или **Камеры**. Например, чехлы или зарядные устройства.\n- Объективы или штативы для **Cannon EOS**.\n- Если вам понравились **Airpods**, возможно, вас заинтересуют другие модели наушников.\n\nЕсли вам нужны конкретные предложения, дайте знать!"
+  },
+  {
+    "createdAt": "2026-06-06T21:52:42.608Z",
+    "message": "Исходя из моих покупок, посоветуй хороший подарок",
+    "piiEntities": [
+      "PERSON"
+    ],
+    "piiDetector": "presidio",
+    "route": "local",
+    "routeReason": "PII in message: PERSON",
+    "model": "qwen3:8b-q8_0",
+    "minimized": false,
+    "masked": false,
+    "latencyMs": 35571,
+    "costUsd": 0,
+    "reply": "Based on your purchases (Airpods, iPhone 11 Pro, Canon camera), here are gift ideas that match your tech interests:\n\n1. **Camera Tripod** - [Sturdy Tripod for Canon](/product/789abc) (Great for stabilizing your camera)\n2. **iPhone 12 Case** - [Premium Leather Case](/product/456def) (Upgrade from your iPhone 11)\n3. **Wireless Charging Pad** - [Fast Charger for Airpods](/product/123ghi) (Complement your wireless setup)\n\nWould you like details about any of these?"
+  }
+]
