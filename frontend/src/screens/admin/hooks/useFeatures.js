@@ -1,5 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 
+// The feature-flags endpoint is admin-protected (protect + admin), so the request
+// must carry the logged-in admin's bearer token. Read it from the same localStorage
+// slot the Redux store hydrates from.
+function authConfig() {
+  try {
+    var ui = JSON.parse(localStorage.getItem('userInfo'))
+    return ui && ui.token ? { headers: { Authorization: 'Bearer ' + ui.token } } : {}
+  } catch (e) {
+    return {}
+  }
+}
+
 function normalize(raw) {
   return {
     id: raw.feature_id,
@@ -32,7 +44,7 @@ export function useFeatures() {
     setLoading(true)
     setError(null)
 
-    fetch('/api/feature-flags')
+    fetch('/api/feature-flags', authConfig())
       .then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + res.statusText)
         return res.json()

@@ -182,6 +182,48 @@ export const ChevronRightIcon = (p) => (
   </Svg>
 )
 
+export const MessageSquareIcon = (p) => (
+  <Svg {...p}>
+    <path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' />
+  </Svg>
+)
+
+export const SendIcon = (p) => (
+  <Svg {...p}>
+    <line x1='22' y1='2' x2='11' y2='13' />
+    <polygon points='22 2 15 22 11 13 2 9 22 2' />
+  </Svg>
+)
+
+export const CpuIcon = (p) => (
+  <Svg {...p}>
+    <rect x='4' y='4' width='16' height='16' rx='2' />
+    <rect x='9' y='9' width='6' height='6' />
+    <line x1='9' y1='1' x2='9' y2='4' />
+    <line x1='15' y1='1' x2='15' y2='4' />
+    <line x1='9' y1='20' x2='9' y2='23' />
+    <line x1='15' y1='20' x2='15' y2='23' />
+    <line x1='20' y1='9' x2='23' y2='9' />
+    <line x1='20' y1='14' x2='23' y2='14' />
+    <line x1='1' y1='9' x2='4' y2='9' />
+    <line x1='1' y1='14' x2='4' y2='14' />
+  </Svg>
+)
+
+export const CloudIcon = (p) => (
+  <Svg {...p}>
+    <path d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' />
+  </Svg>
+)
+
+export const RefreshIcon = (p) => (
+  <Svg {...p}>
+    <polyline points='23 4 23 10 17 10' />
+    <polyline points='1 20 1 14 7 14' />
+    <path d='M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15' />
+  </Svg>
+)
+
 /* StarIcon — variant via `fill` prop: 'full' fills the path, 'half' fills left half,
  * 'empty' (default) draws outline only. Color via CSS (currentColor → --ff-star-active / -inactive).
  */

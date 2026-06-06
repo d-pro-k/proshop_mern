@@ -10,6 +10,7 @@ import {
   PackageIcon,
   ShoppingBagIcon,
   FlagIcon,
+  MessageSquareIcon,
   SearchIcon,
   XIcon,
   ExternalLinkIcon,
@@ -455,6 +456,9 @@ var FeatureFlagsScreen = function () {
           <Link to="/admin/feature-flags" className={navCls('/admin/feature-flags')}>
             <FlagIcon size={16} /> Feature flags
           </Link>
+          <Link to="/admin/ai-router" className={navCls('/admin/ai-router')}>
+            <MessageSquareIcon size={16} /> AI Router
+          </Link>
         </div>
 
         <div className={s.spacer} />
@@ -491,6 +495,9 @@ var FeatureFlagsScreen = function () {
           </Link>
           <Link to="/admin/feature-flags" className={location.pathname === '/admin/feature-flags' ? s.mobileNavItem + ' ' + s.mobileNavItemActive : s.mobileNavItem}>
             <FlagIcon size={14} /> Flags
+          </Link>
+          <Link to="/admin/ai-router" className={location.pathname === '/admin/ai-router' ? s.mobileNavItem + ' ' + s.mobileNavItemActive : s.mobileNavItem}>
+            <MessageSquareIcon size={14} /> AI Router
           </Link>
         </nav>
 

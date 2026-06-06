@@ -1,0 +1,46 @@
+{
+  "name": "M7 — Assistant Tool Fetch",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": {
+        "inputSource": "workflowInputs",
+        "workflowInputs": {
+          "values": [
+            { "name": "endpoint", "type": "string" },
+            { "name": "authorization", "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "http",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [240, 0],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://host.docker.internal:5001{{ $json.endpoint }}",
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ $json.authorization }}" }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [[{ "node": "HTTP Request", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}
