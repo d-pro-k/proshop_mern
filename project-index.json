@@ -198,6 +198,7 @@
       "db.js"
     ],
     "backend/controllers": [
+      "assistantController.js",
       "featureFlagController.js",
       "orderController.js",
       "productController.js",
@@ -212,11 +213,13 @@
       "errorMiddleware.js"
     ],
     "backend/models": [
+      "chatLogModel.js",
       "orderModel.js",
       "productModel.js",
       "userModel.js"
     ],
     "backend/routes": [
+      "assistantRoutes.js",
       "featureFlagRoutes.js",
       "orderRoutes.js",
       "productRoutes.js",
@@ -224,6 +227,8 @@
       "userRoutes.js"
     ],
     "backend/utils": [
+      "assistantCost.js",
+      "assistantPrivacy.js",
       "generateToken.js"
     ],
     "design-system": [
@@ -307,6 +312,7 @@
       "styles"
     ],
     "frontend/src/actions": [
+      "assistantActions.js",
       "cartActions.js",
       "featureFlagActions.js",
       "orderActions.js",
@@ -316,6 +322,8 @@
     "frontend/src/components": [
       "AutoPilotControls.jsx",
       "AutoPilotControls.module.css",
+      "ChatWidget.jsx",
+      "ChatWidget.module.css",
       "CheckoutSteps.js",
       "Footer.js",
       "Footer.module.css",
@@ -331,9 +339,11 @@
       "Rating.js",
       "SearchBox.js",
       "SearchBox.module.css",
-      "icons.jsx"
+      "icons.jsx",
+      "markdown.js"
     ],
     "frontend/src/constants": [
+      "assistantConstants.js",
       "cartConstants.js",
       "featureFlagConstants.js",
       "orderConstants.js",
@@ -341,6 +351,7 @@
       "userConstants.js"
     ],
     "frontend/src/reducers": [
+      "assistantReducers.js",
       "cartReducers.js",
       "featureFlagReducers.js",
       "orderReducers.js",
@@ -368,6 +379,8 @@
       "storefront"
     ],
     "frontend/src/screens/admin": [
+      "AIRouterDashboardScreen.jsx",
+      "AIRouterDashboardScreen.module.css",
       "FeatureFlagsScreen.jsx",
       "FeatureFlagsScreen.module.css",
       "OrderListScreen.jsx",
@@ -398,7 +411,8 @@
     "homework": [
       "M4",
       "M5",
-      "M6"
+      "M6",
+      "M7"
     ],
     "homework/M4": [
       "README.md",
@@ -548,6 +562,31 @@
     "homework/M6/stage4-tests-agent/service-3-tests": [
       "bm25.test.ts"
     ],
+    "homework/M7": [
+      "0-deploy.md",
+      "demo",
+      "router",
+      "tests",
+      "writeup-dz1.md"
+    ],
+    "homework/M7/demo": [
+      "README.md",
+      "dashboard.png",
+      "router-logs.json"
+    ],
+    "homework/M7/router": [
+      "pii-compare.py",
+      "pii-detection-comparison.md",
+      "tool-fetch-subworkflow.json",
+      "workflow.json"
+    ],
+    "homework/M7/tests": [
+      "assistant-chat-proxy.test.js",
+      "assistant-cost.test.js",
+      "assistant-logs.test.js",
+      "assistant-privacy.test.js",
+      "assistant-tool-scoping.test.js"
+    ],
     "mcp": [
       "feature-flags",
       "search-docs"
@@ -685,5 +724,5 @@
       "file.txt"
     ]
   },
-  "last_updated": "2026-06-03T01:48:08.664051+00:00"
+  "last_updated": "2026-06-06T23:54:49.888002+00:00"
 }

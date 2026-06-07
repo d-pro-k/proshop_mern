@@ -7,6 +7,9 @@ import {
   postAssistantChat,
   getAssistantLogs,
   getAssistantProducts,
+  getAllOrdersTool,
+  getAllUsersTool,
+  getProductReviewsTool,
   prepareAssistantContext,
   restoreAssistantReply,
 } from '../controllers/assistantController.js'
@@ -29,5 +32,17 @@ router.post('/privacy/restore', protect, restoreAssistantReply)
 router.get('/tools/products', protect, getAssistantProducts)
 router.get('/tools/my-orders', protect, getMyOrders)
 router.get('/tools/my-profile', protect, getUserProfile)
+
+// Untrusted-content channel (DZ2): product reviews are written by other
+// customers and may carry indirect prompt-injection payloads. Authenticated but
+// not privileged — the agent must treat the text as data, not instructions.
+router.get('/tools/product-reviews', protect, getProductReviewsTool)
+
+// BROAD TOOLS (DZ2) — deliberately over-privileged. `protect` only, NOT `admin`:
+// the vulnerability is that a regular user's agent can reach all-customer data
+// when assistant_vulnerable_mode is Enabled. With the flag Disabled (secure
+// default) both refuse with 403 inside the handler — the deterministic guard.
+router.get('/tools/all-orders', protect, getAllOrdersTool)
+router.get('/tools/all-users', protect, getAllUsersTool)
 
 export default router

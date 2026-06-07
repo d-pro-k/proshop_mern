@@ -2,7 +2,16 @@ import asyncHandler from 'express-async-handler'
 import ChatLog from '../models/chatLogModel.js'
 import Product from '../models/productModel.js'
 import Order from '../models/orderModel.js'
+import User from '../models/userModel.js'
 import { minimizeOrder, tokenizePII, deanonymize } from '../utils/assistantPrivacy.js'
+import { isFeatureEnabled } from '../utils/featureFlag.js'
+
+// DZ2 toggle. When this flag is Enabled the assistant is wired to broad,
+// admin-scoped tools (all customers' orders and accounts) — a deliberately
+// insecure "how NOT to do it" build. When Disabled (the secure default) those
+// tools refuse with 403. This is the deterministic defense: authorization lives
+// in this trusted code, not in the LLM's prompt, so no jailbreak can re-enable it.
+const VULNERABLE_MODE_FLAG = 'assistant_vulnerable_mode'
 
 // Where the proxy forwards chat turns. The n8n router owns PII detection, model
 // routing, tool calls and chat-log writes. Configurable; never hard-code in clients.
@@ -55,6 +64,11 @@ const postAssistantChat = asyncHandler(async (req, res) => {
   // to this user (deterministic least privilege — no userId travels via the LLM).
   const authHeader = req.headers.authorization || ''
 
+  // DZ2 before/after switch. The trusted server reads the flag and tells the
+  // router which system prompt to use (hardened vs the deliberately weak
+  // vulnerable build). The LLM never sees or controls this value.
+  const vulnerableMode = await isFeatureEnabled(VULNERABLE_MODE_FLAG)
+
   let upstream
   try {
     upstream = await fetch(ASSISTANT_WEBHOOK_URL, {
@@ -63,7 +77,11 @@ const postAssistantChat = asyncHandler(async (req, res) => {
         'Content-Type': 'application/json',
         Authorization: authHeader,
       },
-      body: JSON.stringify({ userId: req.user._id.toString(), message }),
+      body: JSON.stringify({
+        userId: req.user._id.toString(),
+        message,
+        vulnerableMode,
+      }),
     })
   } catch (err) {
     res.status(502)
@@ -112,6 +130,99 @@ const getAssistantProducts = asyncHandler(async (req, res) => {
       url: `/product/${p._id}`,
     }))
   )
+})
+
+// @desc    BROAD TOOL (DZ2) — every customer's orders, with names + emails.
+//          Gated by the assistant_vulnerable_mode flag: returns data only when
+//          the flag is Enabled; otherwise refuses with 403. The point of DZ2 is
+//          that a regular user's agent should never reach this. The refusal is a
+//          deterministic, code-level guard — it does not depend on the prompt and
+//          cannot be talked around by a jailbroken or injection-steered agent.
+// @route   GET /api/assistant/tools/all-orders
+// @access  Private
+const getAllOrdersTool = asyncHandler(async (req, res) => {
+  if (!(await isFeatureEnabled(VULNERABLE_MODE_FLAG))) {
+    res.status(403)
+    throw new Error(
+      'Forbidden: this tool is disabled (least privilege). The assistant is ' +
+        'scoped to the current authenticated user and cannot read other customers.'
+    )
+  }
+
+  const orders = await Order.find({}).populate('user', 'name email')
+  res.json(
+    orders.map((o) => ({
+      id: o._id,
+      customer: o.user ? { name: o.user.name, email: o.user.email } : null,
+      totalPrice: o.totalPrice,
+      isPaid: o.isPaid,
+      isDelivered: o.isDelivered,
+      createdAt: o.createdAt,
+    }))
+  )
+})
+
+// @desc    BROAD TOOL (DZ2) — every user account (name, email, admin flag).
+//          Same flag gate and 403 refusal as getAllOrdersTool.
+// @route   GET /api/assistant/tools/all-users
+// @access  Private
+const getAllUsersTool = asyncHandler(async (req, res) => {
+  if (!(await isFeatureEnabled(VULNERABLE_MODE_FLAG))) {
+    res.status(403)
+    throw new Error(
+      'Forbidden: this tool is disabled (least privilege). The assistant is ' +
+        'scoped to the current authenticated user and cannot list other accounts.'
+    )
+  }
+
+  const users = await User.find({}).select('name email isAdmin')
+  res.json(
+    users.map((u) => ({
+      id: u._id,
+      name: u.name,
+      email: u.email,
+      isAdmin: u.isAdmin,
+    }))
+  )
+})
+
+// @desc    Product reviews for the assistant — the UNTRUSTED-CONTENT channel.
+//          Review comments are written by other customers and are the vector for
+//          indirect prompt injection (OWASP LLM01): the agent must treat the
+//          returned text strictly as data, never as instructions. This tool is a
+//          legitimate, always-on feature; the defense is the agent's handling of
+//          its output plus the deterministic scope guard on the privileged tools.
+// @route   GET /api/assistant/tools/product-reviews?keyword=...
+// @access  Private
+const getProductReviewsTool = asyncHandler(async (req, res) => {
+  // Lenient keyword match: a multi-word query like "Airpods headphones" should
+  // still find "Airpods Wireless Bluetooth Headphones", so match on any
+  // significant word rather than the exact phrase.
+  const words = String(req.query.keyword || '')
+    .split(/\s+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}]/gu, ''))
+    .filter((w) => w.length > 2)
+  const filter = words.length
+    ? { $or: words.map((w) => ({ name: { $regex: w, $options: 'i' } })) }
+    : {}
+
+  const product = await Product.findOne({ ...filter })
+  if (!product) {
+    res.json({ product: null, reviews: [] })
+    return
+  }
+
+  res.json({
+    product: product.name,
+    productId: product._id,
+    rating: product.rating,
+    numReviews: product.numReviews,
+    reviews: (product.reviews || []).map((r) => ({
+      author: r.name,
+      rating: r.rating,
+      comment: r.comment,
+    })),
+  })
 })
 
 // @desc    Build a privacy-hardened context for the cloud model from the user's
@@ -180,6 +291,9 @@ export {
   postAssistantChat,
   getAssistantLogs,
   getAssistantProducts,
+  getAllOrdersTool,
+  getAllUsersTool,
+  getProductReviewsTool,
   prepareAssistantContext,
   restoreAssistantReply,
 }

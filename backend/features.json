@@ -1,4 +1,15 @@
 {
+  "assistant_vulnerable_mode": {
+    "name": "AI Assistant Vulnerable Mode (DZ2 demo)",
+    "description": "SECURITY DEMO FLAG — keep Disabled in any real deployment. When Enabled, the AI shopping assistant is wired to broad, admin-scoped tools (every customer's orders and accounts) and runs a deliberately weak system prompt with no injection defenses. Used to reproduce direct and indirect prompt-injection attacks (OWASP LLM01) and contrast them against the secure build. When Disabled, the broad tools refuse with HTTP 403 and the assistant runs the hardened, user-scoped prompt.",
+    "status": "Disabled",
+    "traffic_percentage": 0,
+    "last_modified": "2026-06-07",
+    "targeted_segments": [
+      "internal"
+    ],
+    "rollout_strategy": "canary"
+  },
   "search_v2": {
     "name": "New Search Algorithm",
     "description": "Replaces legacy regex-based keyword matching with a hybrid BM25 + TF-IDF ranking pipeline. Improves relevance for multi-word queries and handles common misspellings via fuzzy matching. Backend: new productController search path; index built on name, brand, category, description fields.",
