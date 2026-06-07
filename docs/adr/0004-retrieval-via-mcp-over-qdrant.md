@@ -36,7 +36,7 @@ New retrieval features should extend the MCP server and the shared ingest/query 
 ## Consequences
 
 - Agents have one retrieval interface (`search_project_docs`), consistent with the guidance in `AGENTS.md`.
-- **Known divergence (unresolved):** the served MCP path is dense-only against `proshop_docs`, while the better hybrid + rerank pipeline exists only as CLIs against `proshop_docs_hybrid`. The best retrieval quality is currently unreachable from the served interface. This is recorded in the consolidated code review (`homework/M6/stage1-code-review/synthesis.md`).
+- **Known divergence (unresolved):** the served MCP path is dense-only against `proshop_docs`, while the better hybrid + rerank pipeline exists only as CLIs against `proshop_docs_hybrid`. The best retrieval quality is currently unreachable from the served interface.
 - **Duplication risk:** embedding/Qdrant-client code is copy-pasted across multiple files; a change to the model or collection contract must be made in several places until a shared module exists.
 - **Latency cost:** the rerank step spawns a fresh process (cold model load) per query; making the served path use rerank would require a long-lived worker to keep latency acceptable.
 - **Configuration surface:** `OLLAMA_URL` and `QDRANT_URL` are read from the environment and reached without validation; this is a server-side-request-forgery surface to address when the canonical path is finalized.

@@ -229,6 +229,7 @@
     "backend/utils": [
       "assistantCost.js",
       "assistantPrivacy.js",
+      "featureFlag.js",
       "generateToken.js"
     ],
     "design-system": [
@@ -565,6 +566,7 @@
     "homework/M7": [
       "0-deploy.md",
       "demo",
+      "dz2",
       "router",
       "tests",
       "writeup-dz1.md"
@@ -573,6 +575,30 @@
       "README.md",
       "dashboard.png",
       "router-logs.json"
+    ],
+    "homework/M7/dz2": [
+      "README.md",
+      "logs",
+      "redteam",
+      "tools",
+      "writeup-dz2.md"
+    ],
+    "homework/M7/dz2/logs": [
+      "direct-injection.md",
+      "hardening-only-bypass.md",
+      "indirect-injection.md"
+    ],
+    "homework/M7/dz2/redteam": [
+      "payloads.json",
+      "report.md",
+      "results.json"
+    ],
+    "homework/M7/dz2/tools": [
+      "capture-bypass.mjs",
+      "dz2-demo.mjs",
+      "ff-toggle.mjs",
+      "redteam.mjs",
+      "seed-malicious-review.mjs"
     ],
     "homework/M7/router": [
       "pii-compare.py",
@@ -583,6 +609,7 @@
     "homework/M7/tests": [
       "assistant-chat-proxy.test.js",
       "assistant-cost.test.js",
+      "assistant-dz2-security.test.js",
       "assistant-logs.test.js",
       "assistant-privacy.test.js",
       "assistant-tool-scoping.test.js"
@@ -724,5 +751,5 @@
       "file.txt"
     ]
   },
-  "last_updated": "2026-06-06T23:54:49.888002+00:00"
+  "last_updated": "2026-06-07T01:57:24.023375+00:00"
 }

@@ -34,7 +34,7 @@ Future read consumers (backend and frontend) should converge on one shared acces
 ## Consequences
 
 - One simple, version-controlled source of truth for the flag contract; atomic writes prevent partial-file corruption.
-- **Partial enforcement (current state):** the backend controller re-reads and re-parses `backend/features.json` on every request, uncached, so the "single access module" half of this decision is not yet realized (noted in `homework/M6/stage1-code-review/synthesis.md`).
+- **Partial enforcement (current state):** the backend controller re-reads and re-parses `backend/features.json` on every request, uncached, so the "single access module" half of this decision is not yet realized.
 - **Open security/perf item:** the HTTP read endpoints' authentication and the uncached per-request parse remain concerns until the shared access module and access policy are finalized.
 - **Client duplication:** two contradictory consumption patterns exist on the frontend; consolidating them is follow-up work (see the feature-flags spec under `docs/specs/`).
 - A flat file gives no multi-writer safety beyond atomic rename and no horizontal scaling; flag writes are not transactional with MongoDB data.
